@@ -146,8 +146,12 @@ Wandthermostat mit Heizkörperthermostaten verknüpfen.
 
 Auf der Seite wählst du links den Fensterkontakt (oder Wandthermostat), rechts das Thermostat und
 klickst **Verknüpfen**. Die Zentrale sendet den Befehl nacheinander an beide Geräte und wartet
-jeweils auf die Bestätigung; das kann bis zu einer Minute dauern (Sendekontingent, Geräte hören nur
-kurz nach ihrem eigenen Senden zu). Schlägt es fehl, einfach wiederholen. Unter *Bestehende
+jeweils auf die Bestätigung; das kann bis zu einer Minute dauern (Sendekontingent). Ein
+**Fensterkontakt** hört nur kurz nach seinem eigenen Senden zu: Die Zentrale wartet bis zu
+5 Minuten, bis er sich meldet, und sendet dann sofort. Öffne oder schließe dazu das Fenster bzw.
+drücke die Taste am Kontakt, solange die Seite „Warte auf den Fensterkontakt …“ zeigt. Lehnt ein
+Gerät ab oder meldet sich der Kontakt nicht, nimmt die Zentrale die Verknüpfung im anderen Gerät
+wieder zurück. Schlägt es fehl, einfach wiederholen. Unter *Bestehende
 Verknüpfungen* steht, was von hier aus gesetzt wurde; **Lösen** entfernt die Verknüpfung wieder.
 Die Geräte lassen sich nicht auslesen – Verknüpfungen, die zuvor mit anderer Software gesetzt
 wurden, erscheinen nicht in der Liste.

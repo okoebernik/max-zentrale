@@ -100,6 +100,8 @@ class Job:
         self.max_wait = 90      # seconds to wait for send credit
         self.state = "new"      # new -> credit -> ack -> finished
         self.deadline = 0.0
+        self.wake = False       # battery device: send right after it transmits
+        self.expire = 0.0
 
 
 class SerialWorker(threading.Thread):
@@ -112,6 +114,8 @@ class SerialWorker(threading.Thread):
         self.time_queued = {}   # addr -> time.time() of last queued sync
         self.prio = queue.Queue()    # time-critical jobs (pairing answers)
         self.paused = []             # jobs preempted by a pairing answer
+        self.wake_jobs = []          # jobs waiting for their (sleeping) device to transmit
+        self.wake_lock = threading.Lock()
         self.last_credit_poll = 0.0
         self.pairing_until = 0.0     # pairing mode is on until this time
         self.pair_events = []        # recent pairing requests (newest last)
@@ -121,6 +125,29 @@ class SerialWorker(threading.Thread):
         self.console = collections.deque(maxlen=1500)   # live console entries
         self.console_n = 0
         self.console_lock = threading.Lock()
+
+    def add_wake(self, job, wait=330):
+        """Queue a job for a battery device that only listens right after it
+        has transmitted itself: it is sent when the next telegram arrives."""
+        job.wake, job.expire, job.max_wait = True, time.time() + wait, 30
+        with self.wake_lock:
+            self.wake_jobs.append(job)
+
+    def wake_sweep(self, src=None):
+        with self.wake_lock:
+            for j in list(self.wake_jobs):
+                if j.cancelled:
+                    self.wake_jobs.remove(j)
+                    j.done.set()
+                elif time.time() > j.expire:
+                    self.wake_jobs.remove(j)
+                    j.result = {"ok": False, "timeout": True,
+                                "error": "Gerät hat sich nicht gemeldet"}
+                    j.done.set()
+                elif src and j.dst == src:
+                    self.wake_jobs.remove(j)
+                    j.state = "new"
+                    self.prio.put(j)
 
     def log_console(self, direction, raw, t=None, desc="", note=""):
         e = {"dir": direction, "ts": datetime.now().strftime("%H:%M:%S.%f")[:-3],
@@ -198,6 +225,8 @@ class SerialWorker(threading.Thread):
                 fn(t["src"])
             except Exception:
                 pass
+        if self.wake_jobs and t["type"] != 0x02:
+            self.wake_sweep(t["src"])
         if t["type"] == 0x03 and t["dst"] == self.src:
             self.maybe_sync_time(t)
         if t["type"] == 0x00:
@@ -207,7 +236,7 @@ class SerialWorker(threading.Thread):
                 and t["src"] == j.dst and t["dst"] == self.src):
             p = t["payload"]
             ok = len(p) >= 1 and p[0] == 1
-            self.finish(ok, None if ok else "thermostat rejected the command")
+            self.finish(ok, None if ok else "thermostat rejected the command (Antwort %s)" % p.hex().upper())
 
     def handle_pair_ping(self, t):
         """A device announces itself (PairPing).  Only while the user has
@@ -281,6 +310,8 @@ class SerialWorker(threading.Thread):
 
     def drive_job(self, ser):
         now = time.time()
+        if self.wake_jobs:
+            self.wake_sweep()
         if (self.job is not None and self.job.tag is None
                 and self.job.state in ("credit_req", "credit_wait")
                 and not self.prio.empty()):
@@ -353,7 +384,12 @@ class SerialWorker(threading.Thread):
             else:
                 j.state, j.next = "credit_req", now + 5
         elif j.state == "ack" and now >= j.deadline:
-            j.state, j.next = "credit_req", 0.0
+            if j.wake and j.attempt < 6 and now < j.expire:
+                self.job = None                    # device is asleep again: wait for the next wake
+                with self.wake_lock:
+                    self.wake_jobs.append(j)
+            else:
+                j.state, j.next = "credit_req", 0.0
 
 
 # ------------------------------------------------------------------ HTTP
@@ -941,18 +977,48 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(400, {"error": "zwei Fensterkontakte lassen sich nicht verknüpfen"})
             tcode = {v: k for k, v in DEVICE_TYPES.items()}
             res = {"ok": True}
-            for dst, other in ((addr, partner), (partner, addr)):
+
+            def send_link(dst, other, rm):
                 job = Job(dst, 0.0, "raw")
                 job.kind = "raw"
-                job.raw = build_raw(worker.src, dst, 0x21 if remove else 0x20,
+                job.raw = build_raw(worker.src, dst, 0x21 if rm else 0x20,
                                     bytes.fromhex(other) + bytes([tcode[kinds[other]]]))
-                worker.jobs.put(job)
-                if not job.done.wait(30):
+                if kinds[dst] == "ShutterContact":
+                    worker.add_wake(job)           # sleeping battery device
+                    wait = 335
+                else:
+                    worker.jobs.put(job)
+                    wait = 30
+                if not job.done.wait(wait):
                     job.cancelled = True
-                    return self.reply(504, {"ok": False, "error": "Timeout bei %s (kein Sendekontingent oder keine Antwort)" % dst})
-                if not job.result["ok"]:
-                    return self.reply(502, {"ok": False, "error": "%s hat nicht bestätigt: %s" % (
-                        dst, job.result.get("error", ""))})
+                    return {"ok": False, "timeout": True}
+                return job.result
+
+            # the sleeping device (window contact) goes last, so a failure can be rolled back
+            order = [(addr, partner), (partner, addr)]
+            if kinds[addr] == "ShutterContact":
+                order.reverse()
+            for n, (dst, other) in enumerate(order):
+                r = send_link(dst, other, remove)
+                if not r["ok"] and not r.get("timeout") and not remove:
+                    # the device may already hold this link (e.g. from the old Cube):
+                    # clear it and add it again
+                    send_link(dst, other, True)
+                    r = send_link(dst, other, False)
+                if not r["ok"]:
+                    undone = ""
+                    if n and not remove:        # roll back the half-set link
+                        first = order[0]
+                        undone = (" – die Verknüpfung in %s wurde wieder entfernt" % first[0]
+                                  if send_link(first[0], first[1], True).get("ok") else
+                                  " – %s hat die Verknüpfung noch (Rücknahme fehlgeschlagen)" % first[0])
+                    if r.get("timeout"):
+                        why = ("Timeout bei %s: kein Sendekontingent oder keine Antwort" % dst
+                               if kinds[dst] != "ShutterContact" else
+                               "%s (Fensterkontakt) hat sich nicht gemeldet – Fenster öffnen/schließen oder Taste am Kontakt drücken, solange die Seite wartet" % dst)
+                        return self.reply(504, {"ok": False, "error": why + undone})
+                    return self.reply(502, {"ok": False, "error": "%s hat nicht bestätigt: %s%s" % (
+                        dst, r.get("error", ""), undone)})
             a, b = sorted((addr, partner))
             c = sqlite3.connect(db)
             if remove:
