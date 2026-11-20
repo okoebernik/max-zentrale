@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAX! Zentrale</title>
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
+<style>
+:root{--bg:#f1f5f9;--side:#fff;--card:#fff;--fg:#0f172a;--mut:#64748b;--line:#e2e8f0;--acc:#ea580c;--ok:#059669;--bad:#dc2626;--blue:#0d9488;--onpri:#fff}
+:root{color-scheme:light dark}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0b121c;--side:#0e1723;--card:#111b2a;--fg:#e6edf5;--mut:#8a98ab;--line:#1e2b3f;--acc:#ff9150;--ok:#34d399;--bad:#ff6b6b;--blue:#2dd4bf;--onpri:#04211d}
+:root[data-theme=light]{color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b121c;--side:#0e1723;--card:#111b2a;--fg:#e6edf5;--mut:#8a98ab;--line:#1e2b3f;--acc:#ff9150;--ok:#34d399;--bad:#ff6b6b;--blue:#2dd4bf;--onpri:#04211d}}
+#themebtn{padding:5px 10px;font-size:13px}
+#side{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--side);border-right:1px solid var(--line);overflow-y:auto;padding:14px 8px;z-index:6;display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 12px;border-bottom:1px solid var(--line)}
+.brand .logo{width:36px;height:36px;border-radius:10px;flex:none}
+.brand b{display:block;font-size:16px;line-height:1.2} .brand small{color:var(--mut);font-size:11px}
+#nav{display:flex;flex-direction:column;gap:2px}
+#nav .grp{font-size:11px;color:var(--mut);padding:14px 10px 4px}
+#nav a{display:flex;gap:11px;align-items:center;padding:9px 12px;border-radius:999px;color:var(--fg);text-decoration:none;font-size:13.5px;font-weight:600}
+#nav a svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#nav a:hover{background:color-mix(in srgb,var(--blue) 12%,transparent)} #nav a.on{background:var(--blue);color:var(--onpri)}
+#nav a[hidden]{display:none}
+#topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 20px;background:var(--side);border-bottom:1px solid var(--line);margin-left:230px}
+#who{display:inline-flex;gap:8px;align-items:center;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 4px;background:var(--bg)}
+#who .av{width:24px;height:24px;border-radius:50%;background:var(--blue);color:var(--onpri);display:grid;place-items:center;font-size:12px;font-weight:700}
+#who button{border:0;background:none;color:var(--mut);padding:2px 8px;font-size:12px}
+main{margin-left:230px;padding:6px 8px 40px}
+.phead{margin:14px 16px 6px} .phead h1{font-size:26px;letter-spacing:-.01em} .phead p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.kpi b{display:block;font-size:26px;margin:6px 0 2px;letter-spacing:-.01em} .kpi span{font-size:12px;color:var(--mut)}
+.kpi.warn b{color:var(--acc)} .kpi.bad b{color:var(--bad)}
+.btnlink{display:inline-block;padding:7px 12px;border:1px solid var(--line);border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px} .btnlink:hover{border-color:var(--blue)}
+.pick{display:grid;gap:10px}.pick .room{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.pick .chips{display:flex;gap:6px;flex-wrap:wrap}.pick button{padding:6px 12px;font-size:13px;text-align:left;line-height:1.25}
+.pick button small{display:block;font-size:11px;color:var(--mut)}.pick button.on{background:var(--blue);border-color:var(--blue);color:var(--onpri)}.pick button.on small{color:inherit;opacity:.8}
+.tblbox{margin:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;overflow:auto}
+section[data-page]{display:none} section[data-page].on{display:block}
+#login{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+#login[hidden]{display:none}
+#loginform{width:min(360px,100%);display:flex;flex-direction:column;gap:10px}
+#loginform label,.setbox label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mut)}
+#loginform input,.setbox input[type=text],.setbox input[type=password],.setbox input[type=number],.setbox select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:none;width:100%}
+.msg.bad{color:var(--bad)} .msg.ok{color:var(--ok)}
+.setbox{margin:0 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.setbox .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.setbox .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.setbox table{width:100%;border-collapse:collapse;font-size:14px} .setbox td,.setbox th{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--fg)} .setbox label.chk{flex-direction:row;color:var(--fg)}
+.console{margin:0 16px;background:#0d1117;color:#c9d1d9;border:1px solid var(--line);border-radius:12px;padding:8px;height:62vh;overflow:auto;font:12px/1.5 ui-monospace,Consolas,monospace}
+.console div{white-space:pre-wrap;word-break:break-all;padding:1px 4px;border-radius:3px}
+.console div:hover{background:#1c2330}
+.console .t{color:#6e7681} .console .rx{color:#7ee787} .console .tx{color:#ffa657} .console .info{color:#8b949e}
+.console .dim{color:#8b949e} .console .adr{color:#79c0ff}
+.rbar{margin:0 16px 10px}
+@media (max-width:820px){
+  #side{position:static;width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .brand{border:0;padding:0 8px} #nav{flex-direction:row;flex-wrap:wrap} #nav .grp{display:none}
+  #topbar,main{margin-left:0}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,Segoe UI,sans-serif}
+h1{font-size:18px;margin:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:22px 16px 8px}
+#status{font-size:13px;color:var(--mut)}
+#status b{color:var(--ok)} #status b.bad{color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card.sel{outline:2px solid var(--blue)}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.name{font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rhead{display:flex;flex-direction:column;gap:8px;margin:24px 16px 10px}
+.rtop,.rctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.rctl .lbl{font-size:13px;color:var(--mut)} .rctl .tgt{min-width:56px;text-align:center;font-weight:600}
+.rhead h3{margin:0;font-size:17px}
+.rhead .sum{color:var(--mut);font-size:13px}
+.rhead .spacer{flex:1}
+.rbar{margin:20px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.icon{padding:2px 7px;border-radius:6px}
+select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 6px;max-width:150px}
+.winopen{color:var(--bad);font-weight:600}
+#pairing{margin:16px;background:var(--card);border:2px solid var(--acc);border-radius:12px;padding:14px}
+#pairing .pev{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+#finder{margin:16px;background:var(--card);border:2px solid var(--blue);border-radius:12px;padding:14px}
+#finder .cand{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+#finder .cand input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;width:170px}
+.pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--blue);margin-right:6px;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.card.flash{animation:flash 1.6s 2}
+@keyframes flash{50%{box-shadow:0 0 0 4px var(--blue)}}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);padding:18px;max-width:min(420px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog p{margin:0 0 12px}
+dialog input{width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.dlgbtn{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.addr{font:12px ui-monospace,monospace;color:var(--mut)}
+.big{font-size:34px;font-weight:700;margin:6px 0 0}
+.big small{font-size:14px;font-weight:400;color:var(--mut)}
+.row{display:flex;justify-content:space-between;color:var(--mut);font-size:13px;margin-top:4px}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc)}
+.ctl{display:flex;gap:6px;margin-top:12px;align-items:center}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--blue)} button.pri{background:var(--blue);border-color:var(--blue);color:var(--onpri);font-weight:600}
+button:disabled{opacity:.5;cursor:wait}
+.tgt{min-width:62px;text-align:center;font-weight:600}
+.msg{font-size:12px;margin-top:6px;min-height:16px;color:var(--mut)} .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+.badge{font-size:11px;padding:1px 7px;border-radius:10px;border:1px solid var(--line);color:var(--mut)}
+.badge.warn{color:var(--bad);border-color:var(--bad)}
+.open{color:var(--bad);font-weight:700} .closed{color:var(--ok);font-weight:700}
+#chartbox{margin:0 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+#chartbox .hd{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+#chart{width:100%;height:240px;display:block} #chart text{fill:var(--mut);font-size:11px}
+table{width:calc(100% - 32px);margin:0 16px 30px;border-collapse:collapse;font:12px ui-monospace,monospace}
+td,th{padding:3px 6px;border-bottom:1px solid var(--line);text-align:left;color:var(--mut)}
+#cfgbox{margin:0 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+#cfgbox .frow{display:flex;gap:8px;align-items:center;margin:6px 0}
+#cfgbox label{min-width:190px;font-size:14px}
+#cfgbox input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;width:90px}
+#cfgbox details{margin:10px 0}
+#cfgbox summary{cursor:pointer;color:var(--mut);font-size:13px}
+#profbox{margin:0 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:var(--onpri)}
+.prow{display:flex;gap:8px;align-items:center;margin:4px 0}
+.prow input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;width:84px}
+.tl{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:8px 0 2px;border:1px solid var(--line)}
+.tl i{display:block;font:normal 10px/22px system-ui;text-align:center;color:#fff;overflow:hidden;white-space:nowrap}
+.note{font-size:12px;color:var(--mut);margin:6px 0}
+.legend span{margin-right:12px;font-size:12px;color:var(--mut)} .legend i{display:inline-block;width:10px;height:3px;margin-right:4px;vertical-align:middle}
+
+.grid{grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.card{display:flex;flex-direction:column;gap:8px;min-width:0}
+.chead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
+button.nm{border:0;background:none;padding:0;font-weight:600;font-size:16px;color:var(--fg);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+button.nm.unnamed{color:var(--mut);font-weight:500;font-style:italic}
+button.nm .pen{color:var(--mut);font-size:12px;font-weight:400;font-style:normal}
+button.nm:hover .pen{color:var(--blue)}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0;color:var(--mut);font-size:13px}
+.crow .typ{white-space:nowrap}
+.crow select{flex:0 1 auto;min-width:0;max-width:58%;text-overflow:ellipsis}
+.card .big{display:flex;align-items:baseline;gap:10px;margin:0}
+.valve{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;font-size:13px;color:var(--mut)}
+.valve .bar{margin:0}
+.ctl{flex-wrap:wrap;margin-top:2px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{border:0;border-radius:0;padding:6px 12px;font-size:16px;line-height:1}
+.stepper button.on{background:var(--blue);color:var(--onpri)}
+.stepper .tgt{min-width:64px;padding:0 4px}
+.card .msg{margin:0;min-height:0}
+.card .msg:empty{display:none}
+.foot{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12px;color:var(--mut);border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
+.foot .clock{margin-left:auto;display:inline-flex;gap:6px;align-items:center}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.acts button{padding:4px 10px;font-size:13px}
+</style>
+</head>
+<body>
+<div id="login" hidden><form class="card" id="loginform" autocomplete="on">
+  <img src="/logo.svg" alt="" width="56" height="56" style="border-radius:14px"><h1>MAX! Zentrale</h1><p class="addr" id="loginhint"></p>
+  <label>Benutzername<input name="username" id="lu" autocomplete="username" required></label>
+  <label>Passwort<input name="password" id="lp" type="password" autocomplete="current-password" required></label>
+  <div id="lp2wrap" hidden><label>Passwort wiederholen<input id="lp2" type="password" autocomplete="new-password"></label></div>
+  <div class="msg bad" id="loginmsg"></div>
+  <button class="pri" id="loginbtn">Anmelden</button></form></div>
+<aside id="side">
+<div class="brand"><img class="logo" src="/logo.svg" alt="" width="36" height="36"><div><b>MAX! Zentrale</b><small>Heizungssteuerung</small></div></div>
+<nav id="nav">
+<a href="#home" data-p="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Übersicht</a>
+<a href="#rooms" data-p="rooms"><svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M10 21v-6h4v6"/></svg>Räume</a>
+<a href="#programs" data-p="programs"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Programme</a>
+<a href="#history" data-p="history"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Verlauf</a>
+<div class="grp">Geräte</div>
+<a href="#find" data-p="find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Gerät finden</a>
+<a href="#pairing" data-p="pairing"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Pairing</a>
+<div class="grp">Betrieb</div>
+<a href="#telegrams" data-p="telegrams"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Funktelegramme</a>
+<a href="#console" data-p="console"><svg viewBox="0 0 24 24"><path d="M4 17l6-5-6-5"/><path d="M12 19h8"/></svg>Konsole</a>
+<div class="grp">Verwaltung</div>
+<a href="#account" data-p="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Mein Konto</a>
+<a href="#users" data-p="users" data-admin><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M17 4a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6"/></svg>Benutzer</a>
+<a href="#backup" data-p="backup" data-admin><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Backup</a>
+<a href="#mqtt" data-p="mqtt" data-admin><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>MQTT</a>
+</nav></aside>
+<div id="topbar"><div id="status">lädt …</div><button id="themebtn" title="Farbschema wechseln"></button><span id="who"></span></div>
+<script>
+(function(){
+  const modes=["auto","light","dark"],labels={auto:"◐ Auto",light:"☀ Hell",dark:"☾ Dunkel"};
+  let m="auto";try{m=localStorage.getItem("theme")||"auto";}catch(e){}
+  if(!modes.includes(m))m="auto";
+  const apply=()=>{const r=document.documentElement;
+    if(m==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",m);
+    document.getElementById("themebtn").textContent=labels[m];};
+  apply();
+  document.getElementById("themebtn").onclick=()=>{m=modes[(modes.indexOf(m)+1)%3];
+    try{localStorage.setItem("theme",m);}catch(e){}apply();};
+})();
+</script>
+<main>
+<section data-page="home">
+<div class="phead"><h1>Übersicht</h1><p>Räume, Thermostate und Fensterkontakte auf einen Blick.</p></div>
+<div class="kpis" id="kpis"></div>
+<div class="tblbox" id="alerts"></div>
+<div class="tblbox"><b>Schnellzugriff</b>
+<div class="rbar" style="margin:10px 0 0"><a class="btnlink" href="#rooms">Räume &amp; Geräte</a> <a class="btnlink" href="#find">Gerät finden</a> <a class="btnlink" href="#pairing">Neues Gerät koppeln</a> <a class="btnlink" href="#console">Konsole</a></div></div>
+</section>
+<section data-page="rooms">
+<div class="phead"><h1>Räume</h1><p>Thermostate und Fensterkontakte nach Räumen. Geräte ordnest du auf ihrer Karte über „Raum“ zu; ein Klick auf den Gerätenamen oder ✎ benennt sie um.</p></div>
+<div class="rbar"><button class="pri" id="addroom">+ Raum anlegen</button></div>
+<div id="rooms"></div>
+</section>
+<section data-page="find">
+<div class="phead"><h1>Gerät finden</h1><p>Unbekannt, welches Gerät welches ist? Starte die Suche und betätige dann am Gerät etwas: Drehrad am Heizkörper drehen, Fenster öffnen/schließen, Wandthermostat verstellen oder Taster drücken.</p></div>
+<div class="rbar"><button class="pri" id="findbtn">🔍 Suche starten</button></div>
+<div id="finder" hidden></div>
+</section>
+<section data-page="pairing">
+<div class="phead"><h1>Pairing</h1><p>Neue oder zurückgesetzte Geräte mit dieser Zentrale koppeln. Starte den Pairing-Modus (120 s) und versetze dann das Gerät in den Kopplungsmodus.</p></div>
+<div class="rbar"><button class="pri" id="pairbtn">🔗 Pairing starten</button></div>
+<div id="pairing" hidden></div>
+</section>
+<section data-page="history">
+<div class="phead"><h1>Verlauf</h1><p>Ist-, Soll-Temperatur und Ventilstellung eines Geräts.</p></div>
+<div class="rbar"><select id="histsel" title="Gerät wählen"></select></div>
+<div id="chartbox"><div class="hd"><div><b id="ctitle">Gerät anklicken</b></div>
+<div><button data-h="24">24 h</button> <button data-h="168">7 Tage</button> <button data-h="720">30 Tage</button></div></div>
+<div class="legend"><span><i style="background:var(--acc)"></i>Ist</span><span><i style="background:var(--blue)"></i>Soll</span><span><i style="background:var(--ok)"></i>Ventil %</span></div>
+<svg id="chart" viewBox="0 0 800 240" preserveAspectRatio="none"></svg></div>
+</section>
+<section data-page="programs">
+<div class="phead"><h1 id="progtitle">Programme</h1><p id="progsub">Wähle oben ein Gerät.</p></div>
+<div class="tblbox pick" id="progpick"></div>
+<h2>Komfort- und Eco-Temperatur</h2>
+<div id="cfgbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
+<h2>Wochenprofil</h2>
+<div id="profbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
+</section>
+<section data-page="console">
+<div class="phead"><h1>Konsole</h1><p>Funkverkehr live: empfangene und gesendete Telegramme.</p></div>
+<div class="rbar"><button id="conpause">⏸ Pause</button> <button id="conclear">Leeren</button>
+<select id="confilter"><option value="">alle Telegramme</option><option value="rx">nur empfangen</option><option value="tx">nur gesendet</option><option value="info">nur Meldungen</option></select>
+<input id="consrc" placeholder="Adresse filtern, z. B. 1A0001" size="22">
+<label class="chk"><input type="checkbox" id="conraw"> Rohdaten</label>
+<span class="addr" id="concount"></span></div>
+<div id="console" class="console" role="log"></div>
+</section>
+<section data-page="account">
+<div class="phead"><h1>Mein Konto</h1><p>Passwort ändern und abmelden.</p></div>
+<div class="setbox" id="accountbox"></div>
+</section>
+<section data-page="users">
+<div class="phead"><h1>Benutzer</h1><p>Zugänge und Rollen verwalten.</p></div>
+<div class="setbox" id="usersbox"></div>
+</section>
+<section data-page="backup">
+<div class="phead"><h1>Backup</h1><p>Sicherung der Datenbank: Namen, Räume, Profile, Verlauf, Benutzer und Einstellungen.</p></div>
+<div class="setbox" id="backupbox"></div>
+</section>
+<section data-page="mqtt">
+<div class="phead"><h1>MQTT</h1><p>Anbindung an Home Assistant und andere Systeme.</p></div>
+<div class="setbox" id="mqttbox"></div>
+</section>
+<section data-page="telegrams">
+<div class="phead"><h1>Funktelegramme</h1><p>Die zuletzt empfangenen Telegramme (aktualisiert alle 5 Sekunden). Live-Verkehr siehe Konsole.</p></div>
+<div class="tblbox"><table id="log"></table></div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+/* In-page dialogs (window.prompt/confirm are blocked in some embedded browsers) */
+function dialog(msg,{input=null,infoOnly=false,pw=false}={}){
+  return new Promise(res=>{
+    const dlg=document.createElement("dialog");
+    const f=document.createElement("form");f.method="dialog";
+    const p=document.createElement("p");p.textContent=msg;f.append(p);
+    let inp=null;
+    if(input!==null){inp=document.createElement("input");inp.type=pw?"password":"text";inp.value=input;inp.maxLength=pw?200:60;f.append(inp);}
+    const row=document.createElement("div");row.className="dlgbtn";
+    const ok=document.createElement("button");ok.textContent="OK";ok.className="pri";ok.value="ok";
+    row.append(ok);
+    if(!infoOnly){const no=document.createElement("button");no.textContent="Abbrechen";no.type="button";no.onclick=()=>dlg.close("cancel");row.prepend(no);}
+    f.append(row);dlg.append(f);document.body.append(dlg);
+    dlg.addEventListener("close",()=>{const v=dlg.returnValue==="ok";dlg.remove();
+      res(inp?(v?inp.value:null):v);});
+    dlg.showModal();if(inp){inp.focus();inp.select();}
+  });
+}
+const askText=(m,i)=>dialog(m,{input:i});
+const askOk=(m,info=false)=>dialog(m,{infoOnly:info});
+const KIND={HeatingThermostat:"heat",HeatingThermostatPlus:"heat",WallThermostat:"wall"};
+const MODE={auto:"Auto",manual:"Manuell",vacation:"Urlaub",boost:"Boost"};
+let state=null, sel=null, hours=24;
+const KINDDE={HeatingThermostat:"Heizkörperthermostat",HeatingThermostatPlus:"Heizkörperthermostat+",WallThermostat:"Wandthermostat",ShutterContact:"Fensterkontakt",PushButton:"Taster"};
+const pendingRoom={},msgsRoom={};
+const pending={};          // addr -> chosen target temp
+const msgs={};             // addr -> {text,cls}
+function el(tag,attrs={},...kids){const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs)){ if(k==="class")e.className=v; else if(k.startsWith("on"))e[k]=v; else e.setAttribute(k,v);}
+  for(const c of kids.flat())e.append(c&&c.nodeType?c:document.createTextNode(c??""));return e;}
+const fmt=(v,u="")=>v==null?"–":v.toFixed(1).replace(".",",")+u;
+function ago(ts){if(!ts)return"nie";const s=(new Date(state.now)-new Date(ts))/1000;
+  if(s<90)return"vor "+Math.round(s)+" s";if(s<5400)return"vor "+Math.round(s/60)+" min";
+  if(s<172800)return"vor "+Math.round(s/3600)+" h";return"vor "+Math.round(s/86400)+" Tagen";}
+let ME=null, onUnauth=()=>{};
+async function api(path,body){
+  const r=await fetch(path,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:undefined);
+  if(r.status===401&&!path.startsWith("/api/login")&&!path.startsWith("/api/auth"))onUnauth();
+  return{status:r.status,data:await r.json().catch(()=>({}))};}
+const ROLEDE={admin:"Administrator",operator:"Bediener",viewer:"Nur lesen"};
+const canOperate=()=>ME&&ME.role!=="viewer";
+
+function card(d){
+  const kind=KIND[d.kind]||"other";
+  const c=el("div",{class:"card"+(sel===d.addr?" sel":""),"data-addr":d.addr});
+  const rename=async()=>{
+    const n=await askText("Name für "+d.addr+" ("+(KINDDE[d.kind]||"Gerät")+"):",d.name||"");if(n===null)return;
+    await api("/api/name",{addr:d.addr,name:n});load();};
+  // header: name + address
+  c.append(el("div",{class:"chead"},
+    el("button",{class:"nm"+(d.name?"":" unnamed"),title:"Umbenennen",onclick:rename},
+      d.name||"Unbenannt",el("span",{class:"pen"}," ✎")),
+    el("span",{class:"addr"},d.addr)));
+  // type + room
+  c.append(el("div",{class:"crow"},el("span",{class:"typ"},KINDDE[d.kind]||"unbekannter Typ"),
+    el("select",{title:"Raum zuordnen",onchange:async e=>{
+        await api("/api/device_room",{addr:d.addr,room_id:e.target.value?+e.target.value:null});load();}},
+      el("option",{value:""},"– kein Raum –"),
+      state.rooms.map(r=>el("option",{value:r.id,...(r.id===d.room_id?{selected:""}:{})},r.name)))));
+  // main value
+  if(kind==="other"){
+    if(d.kind==="ShutterContact")
+      c.append(el("div",{class:"big "+(d.is_open?"open":"closed")},d.is_open==null?"–":d.is_open?"Offen":"Geschlossen"));
+    else c.append(el("div",{class:"big"},el("small",{},d.kind||"unbekanntes Gerät")));
+  }else{
+    c.append(el("div",{class:"big"},el("span",{},fmt(d.measured," °C")),el("small",{},"Soll "+fmt(d.setpoint," °C"))));
+    if(kind==="heat"&&d.valve!=null){
+      c.append(el("div",{class:"valve"},el("div",{class:"bar"},el("i",{style:"width:"+d.valve+"%"})),
+        el("span",{},"Ventil "+d.valve+" %"),el("span",{class:"badge"},MODE[d.mode]||d.mode||"")));
+    }
+  }
+  // setpoint controls (radiator and wall thermostats)
+  if(kind==="heat"||kind==="wall"){
+    const t=pending[d.addr]??d.setpoint??20;
+    const m=msgs[d.addr]||{};
+    const step=x=>{pending[d.addr]=Math.min(30.5,Math.max(4.5,t+x));render();};
+    const send=async body=>{msgs[d.addr]={text:"sende …",cls:""};render();
+      const r=await api("/api/set",{addr:d.addr,...body});
+      msgs[d.addr]=r.data.ok?{text:"bestätigt ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};
+      delete pending[d.addr];await load();};
+    c.append(el("div",{class:"ctl"},
+      el("div",{class:"stepper"},el("button",{onclick:()=>step(-.5)},"−"),el("span",{class:"tgt"},fmt(t," °C")),el("button",{onclick:()=>step(.5)},"+")),
+      el("button",{class:"pri",onclick:()=>send({temp:t})},"Setzen"),
+      el("button",{onclick:()=>send({auto:true}),title:"Zurück zum Wochenprogramm"},"Auto"),
+      el("button",{onclick:()=>preset(d.addr,"comfort"),title:"Komfort-Temperatur des Geräts anwenden"},"Komfort"),
+      el("button",{onclick:()=>preset(d.addr,"eco"),title:"Eco-Temperatur des Geräts anwenden"},"Eco")),
+      el("div",{class:"msg "+(m.cls||"")},m.text||""));
+  }
+  // wall thermostat: what does its display show?
+  if(kind==="wall"){
+    const setDisp=async actual=>{msgs[d.addr]={text:"sende …",cls:""};render();
+      const r=await api("/api/display",{addr:d.addr,actual});
+      msgs[d.addr]=r.data.ok?{text:"Display umgestellt ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};await load();};
+    c.append(el("div",{class:"crow"},el("span",{class:"typ"},"Display zeigt"),
+      el("div",{class:"stepper"},
+        el("button",{class:d.display_actual===true?"on":"",onclick:()=>setDisp(true),title:"Ist-Temperatur im Display anzeigen"},"Ist"),
+        el("button",{class:d.display_actual===false?"on":"",onclick:()=>setDisp(false),title:"Solltemperatur im Display anzeigen"},"Soll"))));
+  }
+  // footer: status
+  const b=[];
+  if(d.battery_low)b.push(el("span",{class:"badge warn"},"Batterie leer"));
+  if(d.rssi!=null)b.push(el("span",{class:"badge"},Math.round(d.rssi)+" dBm"));
+  const foot=el("div",{class:"foot"},el("span",{},"gesehen "+ago(d.last_seen)),b);
+  if(kind!=="other")foot.append(el("span",{class:"clock"},"Uhr: "+(d.time_sync?ago(d.time_sync):"noch nicht"),
+    el("button",{class:"badge",title:"Aktuelle Uhrzeit an das Gerät senden",onclick:async()=>{
+      msgs[d.addr]={text:"stelle Uhr …",cls:""};render();
+      const r=await api("/api/time",{addr:d.addr});
+      msgs[d.addr]=r.data.ok?{text:"Uhr gestellt ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};await load();}},"stellen")));
+  c.append(foot);
+  if(kind!=="other"||d.kind==="ShutterContact")
+    c.append(el("div",{class:"acts"},mk2("Verlauf",()=>{sel=d.addr;drawChart();goto("history");}),
+      kind==="other"?"":mk2("Wochenprofil",()=>goto("programs/"+d.addr)),
+      kind==="other"?"":mk2("Komfort/Eco…",()=>goto("programs/"+d.addr))));
+  return c;
+}
+function mk2(t,f){return el("button",{onclick:f},t);}
+function render(){
+  if(!state)return;
+  const host=$("#rooms");host.replaceChildren();
+  const order={heat:0,wall:1,other:2};
+  const sortDev=a=>[...a].sort((x,y)=>order[KIND[x.kind]||"other"]-order[KIND[y.kind]||"other"]||(x.name||x.addr).localeCompare(y.name||y.addr));
+  const groups=state.rooms.map(r=>({room:r,devs:state.devices.filter(d=>d.room_id===r.id)}));
+  const loose=state.devices.filter(d=>!state.rooms.some(r=>r.id===d.room_id));
+  if(loose.length||!groups.length)groups.push({room:null,devs:loose});
+  for(const{room,devs}of groups){
+    const temps=devs.map(d=>d.measured).filter(v=>v!=null);
+    const avg=temps.length?temps.reduce((a,b)=>a+b,0)/temps.length:null;
+    const open=devs.filter(d=>d.kind==="ShutterContact"&&d.is_open);
+    const heaters=devs.filter(d=>KIND[d.kind]==="heat");
+    const head=el("div",{class:"rhead"}),top=el("div",{class:"rtop"},el("h3",{},room?room.name:"Nicht zugeordnet"));
+    head.append(top);
+    if(room)top.append(
+      el("button",{class:"icon",title:"Raum umbenennen",onclick:async()=>{
+        const n=await askText("Neuer Raumname:",room.name);if(!n)return;
+        const r=await api("/api/room",{action:"rename",id:room.id,name:n});if(!r.data.ok)await askOk(r.data.error||"Fehler",true);load();}},"✎"),
+      el("button",{class:"icon",title:"Raum löschen (Geräte werden nicht gelöscht)",onclick:async()=>{
+        if(!await askOk("Raum „"+room.name+"“ löschen? Die Geräte bleiben erhalten."))return;
+        await api("/api/room",{action:"delete",id:room.id});load();}},"🗑"));
+    const sum=[];
+    if(avg!=null)sum.push("Ø "+fmt(avg," °C"));
+    if(devs.length)sum.push(devs.length+" Gerät"+(devs.length>1?"e":""));
+    top.append(el("span",{class:"sum"},sum.join(" · ")));
+    if(open.length)top.append(el("span",{class:"winopen"},"Fenster offen"));
+    if(room&&heaters.length){
+      const t=pendingRoom[room.id]??(heaters.find(h=>h.setpoint!=null)?.setpoint??20);
+      const m=msgsRoom[room.id]||{};
+      const roomSend=async body=>{msgsRoom[room.id]={text:"sende …",cls:""};render();
+        const r=await api("/api/room_set",{room_id:room.id,...body});
+        const bad=Object.entries(r.data.results||{}).filter(([,x])=>!x.ok).length;
+        msgsRoom[room.id]=r.data.ok?{text:"alle bestätigt ✓",cls:"ok"}:{text:"Fehler: "+(bad?bad+" Gerät(e) ohne Bestätigung":r.data.error||r.status),cls:"bad"};
+        delete pendingRoom[room.id];await load();};
+      const stp=x=>{pendingRoom[room.id]=Math.min(30.5,Math.max(4.5,t+x));render();};
+      head.append(el("div",{class:"rctl"},el("span",{class:"lbl"},"Alle Heizkörper:"),
+        mk2("−",()=>stp(-.5)),el("span",{class:"tgt"},fmt(t," °C")),mk2("+",()=>stp(.5)),
+        el("button",{class:"pri",onclick:()=>roomSend({temp:t})},"Alle setzen"),
+        mk2("Alle Auto",()=>roomSend({auto:true})),
+        el("span",{class:"msg "+(m.cls||"")},m.text||"")));
+    }
+    host.append(head);
+    const grid=el("div",{class:"grid"});
+    for(const d of sortDev(devs))grid.append(card(d));
+    if(!devs.length)grid.append(el("div",{class:"addr"},"Noch keine Geräte – auf der Gerätekarte unter „Raum“ zuordnen."));
+    host.append(grid);
+  }
+  const s=state.status;
+  $("#status").replaceChildren(el("b",{class:s.connected?"":"bad"},s.connected?"verbunden":"getrennt"),
+    " · "+(s.version||"").split(" ").slice(1,3).join(" ")+" · letztes Telegramm "+ago(s.last_telegram)+
+    (s.credit_last!=null?" · Sendekontingent: "+Math.floor(s.credit_last/106)+" Sendungen"+(s.credit_last<106?" (leer, lädt ~1 Sendung/Min.)":""):"")+
+    (s.error?" · "+s.error:""));
+}
+async function load(){
+  try{const r=await api("/api/state");state=r.data;
+    // don't rebuild the page while a dropdown/input is being used
+    const ae=document.activeElement;
+    if(!(ae&&(ae.tagName==="SELECT"||ae.tagName==="INPUT")))render();
+    const l=await api("/api/log");
+    const t=$("#log");t.replaceChildren(el("tr",{},...["Zeit","von","an","Typ","dBm","Payload"].map(h=>el("th",{},h))));
+    for(const x of l.data)t.append(el("tr",{},el("td",{},x.ts.slice(11)),el("td",{},x.src),el("td",{},x.dst),el("td",{},x.type_name),el("td",{},x.rssi_dbm==null?"":Math.round(x.rssi_dbm)),el("td",{},x.payload)));
+  }catch(e){$("#status").textContent="Server nicht erreichbar";}
+}
+async function drawChart(){
+  if(!sel)return;
+  const d=state.devices.find(x=>x.addr===sel);
+  $("#ctitle").textContent=(d?.name||sel)+" · "+sel;
+  const rows=(await api("/api/history?addr="+sel+"&hours="+hours)).data;
+  const svg=$("#chart");svg.replaceChildren();
+  const ns="http://www.w3.org/2000/svg",W=800,H=240,L=34,B=22,T=8;
+  const mkp=(tag,a)=>{const e=document.createElementNS(ns,tag);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  if(!rows.length){const t=mkp("text",{x:W/2,y:H/2,"text-anchor":"middle"});t.textContent="noch keine Daten";svg.append(t);return;}
+  const t0=new Date(rows[0].ts).getTime(),t1=Math.max(new Date(rows.at(-1).ts).getTime(),t0+60000);
+  const x=t=>L+(t-t0)/(t1-t0)*(W-L-6);
+  const temps=rows.flatMap(r=>[r.measured,r.setpoint]).filter(v=>v!=null);
+  let lo=Math.floor(Math.min(...temps,15)-1),hi=Math.ceil(Math.max(...temps,22)+1);
+  const y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  for(let v=lo;v<=hi;v+=2){svg.append(mkp("line",{x1:L,x2:W,y1:y(v),y2:y(v),stroke:"var(--line)"}));
+    const t=mkp("text",{x:L-4,y:y(v)+4,"text-anchor":"end"});t.textContent=v;svg.append(t);}
+  const line=(key,color,fy,w=2,step=false)=>{let p="",last=null;
+    for(const r of rows){const v=r[key];if(v==null)continue;const px=x(new Date(r.ts).getTime()),py=fy(v);
+      p+=(p?(step?"L"+px+","+last+"L":"L"):"M")+px+","+py;last=py;}
+    if(p)svg.append(mkp("path",{d:p,fill:"none",stroke:color,"stroke-width":w,"stroke-linejoin":"round"}));};
+  line("valve","var(--ok)",v=>T+(100-v)/100*(H-T-B),1.2,true);
+  line("setpoint","var(--blue)",y,1.8,true);
+  line("measured","var(--acc)",y,2.2);
+  for(let i=0;i<=4;i++){const t=t0+(t1-t0)*i/4,dt=new Date(t);
+    const e=mkp("text",{x:x(t),y:H-6,"text-anchor":i==0?"start":i==4?"end":"middle"});
+    e.textContent=hours<=24?dt.toTimeString().slice(0,5):dt.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});svg.append(e);}
+}
+/* ---------- Wochenprofil ---------- */
+const DAYS=[["Mon","Mo"],["Tue","Di"],["Wed","Mi"],["Thu","Do"],["Fri","Fr"],["Sat","Sa"],["Sun","So"]];
+const DEF=()=>[{until:"06:00",temp:17},{until:"22:00",temp:21},{until:"24:00",temp:17}];
+let pdev=null,prof={},pday="Mon",pmsg={text:"",cls:""},psent={};
+async function openProfile(addr){
+  pdev=addr;const r=(await api("/api/profile?addr="+addr)).data;prof={};psent={};
+  for(const[d]of DAYS){prof[d]=r[d]?r[d].points.map(p=>({...p})):DEF();psent[d]=r[d]?r[d].sent_at:null;}
+  pmsg={text:"",cls:""};renderProfile();
+}
+const toMin=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(s);return m?+m[1]*60+ +m[2]:null;};
+const tcol=t=>`hsl(${Math.round(220-(Math.min(Math.max(t,5),28)-5)/23*215)},65%,45%)`;
+function renderProfile(){
+  const box=$("#profbox");box.replaceChildren();if(!pdev)return;
+  const dev=state.devices.find(x=>x.addr===pdev);
+  box.append(el("b",{},(dev?.name||pdev)+" · "+pdev));
+  box.append(el("div",{class:"tabs"},DAYS.map(([k,l])=>el("button",{class:k===pday?"on":"",onclick:()=>{pday=k;renderProfile();}},l+(psent[k]?" ✓":"")))));
+  const pts=prof[pday];
+  const tl=el("div",{class:"tl"});let prev=0;
+  for(const p of pts){const m=toMin(p.until);if(m==null||m<=prev)continue;
+    tl.append(el("i",{style:`width:${(m-prev)/14.4}%;background:${tcol(+p.temp)}`,title:p.until},fmt(+p.temp)));prev=m;}
+  box.append(tl);
+  for(const[i,p]of pts.entries()){
+    box.append(el("div",{class:"prow"},el("span",{class:"addr"},i?pts[i-1].until:"00:00"),"bis",
+      el("input",{value:p.until,onchange:e=>{p.until=e.target.value.trim();renderProfile();}}),
+      el("input",{type:"number",step:"0.5",min:"4.5",max:"30.5",value:p.temp,onchange:e=>{p.temp=+e.target.value;renderProfile();}}),"°C",
+      el("button",{onclick:()=>{pts.splice(i,1);renderProfile();}},"✕")));
+  }
+  const bar=el("div",{class:"ctl"});
+  bar.append(el("button",{onclick:()=>{const last=pts.at(-1);if(pts.length>=13)return;
+      if(last&&last.until==="24:00"){last.until="22:00";}pts.push({until:"24:00",temp:last?last.temp:17});renderProfile();}},"+ Schaltpunkt"),
+    el("button",{onclick:()=>{for(const d of["Tue","Wed","Thu","Fri"])prof[d]=pts.map(p=>({...p}));renderProfile();}},"auf Mo–Fr kopieren"),
+    el("button",{onclick:()=>{for(const[d]of DAYS)prof[d]=pts.map(p=>({...p}));renderProfile();}},"auf alle Tage kopieren"));
+  box.append(bar);
+  const act=el("div",{class:"ctl"});
+  const run=async send=>{
+    if(send&&!await askOk("Das Wochenprofil wird an das Thermostat gesendet und ersetzt dessen gespeichertes Profil. Das Gerät kann nicht ausgelesen werden – das alte Profil geht verloren. Fortfahren?"))return;
+    pmsg={text:send?"sende … (kann bis zu 1–2 Minuten dauern)":"speichere …",cls:""};renderProfile();
+    const body={};for(const[d]of DAYS)body[d]=prof[d].map(p=>({temp:+p.temp,until:p.until}));
+    const r=await api("/api/profile",{addr:pdev,profile:body,send});
+    pmsg=r.data.ok?{text:send?"an Gerät gesendet und bestätigt ✓":"gespeichert ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};
+    if(r.data.sent_days)for(const d of r.data.sent_days)psent[d]=new Date().toISOString();
+    renderProfile();};
+  act.append(el("button",{onclick:()=>run(false)},"Nur speichern"),el("button",{class:"pri",onclick:()=>run(true)},"Speichern & an Gerät senden"));
+  box.append(act,el("div",{class:"msg "+pmsg.cls},pmsg.text),
+    el("div",{class:"note"},"Jeder Punkt gilt bis zur angegebenen Uhrzeit (5-Minuten-Raster, letzter Punkt bis 24:00, max. 13 Punkte). Thermostate lassen sich per Funk nicht auslesen: Das Profil hier ist nur das, was zuletzt gespeichert wurde. ✓ = an das Gerät gesendet."));
+}
+/* ---------- Gerät finden ---------- */
+let fSince=0,fTimer=null,fSig="";
+const EVT=(c)=>({open:"Fenster geöffnet",closed:"Fenster geschlossen",knob:"Drehknopf bedient"+(c.to!=null?" → "+fmt(c.to," °C"):""),
+  setpoint:"Sollwert geändert "+(c.from!=null?fmt(c.from)+" → ":"")+fmt(c.to," °C"),button:"Taste gedrückt"}[c.event]||c.event);
+async function startFind(){
+  const r=(await api("/api/find?since=0")).data;fSince=r.last_id;fSig="";
+  $("#finder").hidden=false;renderFinder([]);
+  clearInterval(fTimer);fTimer=setInterval(pollFind,1500);
+  $("#finder").scrollIntoView({behavior:"smooth"});
+}
+function stopFind(){clearInterval(fTimer);fTimer=null;$("#finder").hidden=true;}
+async function pollFind(){
+  const r=(await api("/api/find?since="+fSince)).data;
+  const sig=(r.candidates||[]).map(c=>c.addr+":"+c.id).join(",");
+  if(sig===fSig)return;                       // nothing new -> keep inputs untouched
+  const ae=document.activeElement;if(ae&&ae.closest&&ae.closest("#finder")&&ae.tagName==="INPUT"&&fSig)return;
+  fSig=sig;renderFinder(r.candidates||[]);
+  const first=(r.candidates||[])[0];
+  if(first){const card=document.querySelector(`.card[data-addr="${first.addr}"]`);
+    if(card){card.classList.remove("flash");void card.offsetWidth;card.classList.add("flash");}}
+}
+function renderFinder(cands){
+  const f=$("#finder");f.replaceChildren();
+  f.append(el("div",{class:"top"},el("b",{},"Gerät finden"),
+    el("button",{onclick:stopFind},"Beenden")));
+  f.append(el("div",{class:"note"},el("span",{class:"pulse"}),
+    cands.length?"Signal empfangen – Gerät benennen und zuordnen:":
+    "Warte auf Signal … Drehe kurz am Heizkörper, öffne bzw. schließe ein Fenster oder ändere den Sollwert am Wandthermostat."));
+  for(const c of cands.slice(0,4)){
+    const nameIn=el("input",{value:c.name||"",placeholder:"Name, z. B. Fenster Küche",maxlength:"60"});
+    const roomSel=el("select",{},el("option",{value:""},"– kein Raum –"),
+      state.rooms.map(r=>el("option",{value:r.id,...(r.id===c.room_id?{selected:""}:{})},r.name)));
+    const msg=el("span",{class:"msg"});
+    const save=async()=>{
+      if(nameIn.value.trim()!==(c.name||""))await api("/api/name",{addr:c.addr,name:nameIn.value.trim()});
+      await api("/api/device_room",{addr:c.addr,room_id:roomSel.value?+roomSel.value:null});
+      msg.textContent="gespeichert ✓";msg.className="msg ok";await load();};
+    f.append(el("div",{class:"cand"},el("b",{},KINDDE[c.kind]||"Gerät"),el("span",{class:"addr"},c.addr),
+      el("span",{},EVT(c)),nameIn,roomSel,el("button",{class:"pri",onclick:save},"Speichern"),msg));
+  }
+  if(cands.length)f.append(el("div",{class:"ctl"},el("button",{onclick:async()=>{
+      const r=(await api("/api/find?since=0")).data;fSince=r.last_id;fSig="";renderFinder([]);}},"Nächstes Gerät suchen")));
+}
+/* ---------- Komfort / Eco ---------- */
+async function preset(addr,which){
+  msgs[addr]={text:"sende …",cls:""};render();
+  const r=await api("/api/preset",{addr,preset:which});
+  msgs[addr]=r.data.ok?{text:(which==="eco"?"Eco":"Komfort")+" gesetzt ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};
+  await load();
+}
+let cfgDev=null,cfgVals=null,cfgMsg={text:"",cls:""},cfgInfo={};
+const CFGF=[["comfort","Komfort-Temperatur (°C)",1],["eco","Eco-Temperatur (°C)",1],
+  ["max","Höchsttemperatur (°C)",2],["min","Mindesttemperatur (°C)",2],["offset","Temperatur-Korrektur (°C)",2],
+  ["window_temp","Fenster offen: Temperatur (°C)",2],["window_min","Fenster offen: Dauer (min)",2]];
+async function openCfg(addr){
+  cfgDev=addr;const r=(await api("/api/config?addr="+addr)).data;cfgVals={...r.cfg};cfgInfo={stored:r.stored,sent_at:r.sent_at};
+  cfgMsg={text:"",cls:""};renderCfg();
+}
+function renderCfg(){
+  const box=$("#cfgbox");box.replaceChildren();if(!cfgDev)return;
+  const dev=state.devices.find(x=>x.addr===cfgDev);
+  box.append(el("b",{},(dev?.name||cfgDev)+" · "+cfgDev));
+  const adv=el("details",{},el("summary",{},"Weitere Werte (Fenster offen, Grenzen, Korrektur)"));
+  for(const[k,label,grp]of CFGF){
+    const inp=el("input",{type:"number",step:k==="window_min"?"5":"0.5",value:cfgVals[k],
+      onchange:e=>{cfgVals[k]=+e.target.value;}});
+    const row=el("div",{class:"frow"},el("label",{},label),inp);
+    (grp===1?box:adv).append(row);
+  }
+  box.append(adv);
+  const save=async()=>{
+    if(!await askOk("Diese Werte werden an das Thermostat gesendet. Das Gerät kann nicht ausgelesen werden – alle sieben Werte (auch die unter „Weitere Werte“) ersetzen die im Gerät gespeicherten. Fortfahren?"))return;
+    cfgMsg={text:"sende …",cls:""};renderCfg();
+    const r=await api("/api/config",{addr:cfgDev,cfg:cfgVals});
+    cfgMsg=r.data.ok?{text:"gesendet und bestätigt ✓",cls:"ok"}:{text:"Fehler: "+(r.data.error||r.status),cls:"bad"};
+    if(r.data.ok){cfgInfo={stored:true,sent_at:new Date().toISOString()};}
+    renderCfg();};
+  box.append(el("div",{class:"ctl"},el("button",{class:"pri",onclick:save},"An Gerät senden"),
+    el("button",{onclick:()=>{cfgVals={...CFGDEF};renderCfg();}},"Standardwerte")),
+    el("div",{class:"msg "+cfgMsg.cls},cfgMsg.text),
+    el("div",{class:"note"},cfgInfo.stored?"Zuletzt von hier gesendete Werte (letzter Versand: "+(cfgInfo.sent_at||"").replace("T"," ").slice(0,16)+").":
+      "Standardwerte von MAX! – von hier wurde noch nichts gesendet. Die tatsächlich im Gerät gespeicherten Werte lassen sich nicht auslesen."));
+}
+const CFGDEF={comfort:21,eco:17,max:30.5,min:4.5,offset:0,window_temp:12,window_min:15};
+/* ---------- Pairing ---------- */
+let pTimer=null;
+const PSTAT={pending:"Anfrage empfangen …",sending:"antworte, warte auf Bestätigung …",
+  paired:"✓ gekoppelt – vom Gerät bestätigt",noack:"✗ keine Bestätigung vom Gerät – Pairing am Gerät erneut starten",
+  other:null};
+async function startPairing(){
+  await api("/api/pairing",{enable:true});
+  $("#pairing").hidden=false;clearInterval(pTimer);pTimer=setInterval(pollPairing,1000);
+  pollPairing();$("#pairing").scrollIntoView({behavior:"smooth"});
+}
+async function stopPairing(){
+  clearInterval(pTimer);pTimer=null;await api("/api/pairing",{enable:false});$("#pairing").hidden=true;load();
+}
+async function pollPairing(){
+  const s=(await api("/api/state")).data,p=s.pairing;
+  const box=$("#pairing");box.replaceChildren();
+  box.append(el("div",{class:"top"},el("b",{},"Pairing-Modus"),el("button",{onclick:stopPairing},"Beenden")));
+  if(p.remaining>0){
+    box.append(el("div",{class:"note"},el("span",{class:"pulse"}),
+      `Aktiv – noch ${p.remaining} s. Löse jetzt am Gerät das Pairing aus (siehe Anleitung des Geräts). `+
+      "Ein Gerät, das noch an einer anderen Zentrale hängt oder dessen Kopplung defekt ist, muss vorher auf Werkseinstellungen zurückgesetzt werden."));
+  }else{
+    box.append(el("div",{class:"note"},"Pairing-Modus beendet (nach 2 Minuten automatisch)."),
+      el("div",{class:"ctl"},el("button",{class:"pri",onclick:startPairing},"Erneut starten")));
+  }
+  for(const e of p.events){
+    const dev=s.devices.find(d=>d.addr===e.addr);
+    if(e.status==="credit")PSTAT.credit=`✗ Sendekontingent leer (Funk darf nur 1 % der Zeit senden) – ca. ${e.wait||"?"} s warten, dann Pairing am Gerät erneut auslösen`;
+    const txt=e.status==="other"?`✗ Gerät ist mit der Zentrale ${e.dst} gekoppelt, nicht mit uns – zuerst am Gerät Werksreset durchführen`:PSTAT[e.status];
+    box.append(el("div",{class:"pev"},el("b",{},KINDDE[e.kind]||e.kind),el("span",{class:"addr"},e.addr),
+      el("span",{class:"addr"},"Seriennr. "+e.serial),
+      el("span",{class:"msg "+(e.status==="paired"?"ok":(e.status==="noack"||e.status==="other")?"bad":"")},txt),
+      e.count>1?el("span",{class:"badge"},"×"+e.count):"",
+      dev&&dev.name?el("span",{class:"addr"},"("+dev.name+")"):""));
+  }
+  if(p.remaining===0&&pTimer&&!p.events.some(e=>e.status==="pending"||e.status==="sending")){
+    clearInterval(pTimer);pTimer=null;load();}
+}
+$("#pairbtn").onclick=startPairing;
+$("#findbtn").onclick=startFind;
+$("#addroom").onclick=async()=>{
+  const n=await askText("Name des neuen Raums (z. B. Wohnzimmer):","");if(!n||!n.trim())return;
+  const r=await api("/api/room",{action:"create",name:n});if(!r.data.ok)await askOk(r.data.error||"Fehler",true);load();};
+document.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{hours=+b.dataset.h;drawChart();});
+
+/* ---------------------------------------------------------- navigation */
+const PAGES=["home","rooms","find","pairing","history","programs","console","telegrams","account","users","backup","mqtt"];
+let page="home";
+let progAddr=null;
+function goto(p){
+  let arg=null;if(p.includes("/"))[p,arg]=p.split("/");
+  if(!PAGES.includes(p))p="home";
+  if(p==="programs"&&!arg)arg=progAddr;
+  const h="#"+p+(arg?"/"+arg:"");
+  if(location.hash!==h)history.replaceState(null,"",h);
+  page=p;
+  if(p==="programs")showProgram(arg);
+  document.querySelectorAll("section[data-page]").forEach(s=>s.classList.toggle("on",s.dataset.page===p));
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.dataset.p===p));
+  if(p==="history"){fillHist();drawChart();}
+  if(p==="console")conStart(); else conStop();
+  if(p==="account")renderAccount();
+  if(p==="users")renderUsers();
+  if(p==="mqtt")renderMqtt();
+  if(p==="backup")renderBackup();
+}
+window.addEventListener("hashchange",()=>goto(location.hash.slice(1)));
+function fillHist(){
+  const s=$("#histsel");if(!state||document.activeElement===s)return;
+  const devs=state.devices.filter(d=>["heat","wall"].includes(KIND[d.kind])||d.kind==="ShutterContact");
+  const sig=devs.map(d=>d.addr+(d.name||"")).join();
+  if(s.dataset.sig!==sig){s.dataset.sig=sig;
+    s.replaceChildren(el("option",{value:""},"– Gerät wählen –"),
+      ...devs.map(d=>el("option",{value:d.addr},(d.name||"Unbenannt")+" · "+d.addr)));}
+  s.value=sel||"";
+}
+$("#histsel").onchange=e=>{sel=e.target.value||null;drawChart();};
+
+/* --------------------------------------------- Programme pro Gerät */
+const progDevices=()=>{const rn=Object.fromEntries(state.rooms.map(r=>[r.id,r.name]));
+  return state.devices.filter(d=>["heat","wall"].includes(KIND[d.kind]))
+    .sort((a,b)=>((rn[a.room_id]||"~")+(a.name||"~")+a.addr).localeCompare((rn[b.room_id]||"~")+(b.name||"~")+b.addr,"de"));};
+function renderProgPick(){
+  if(!state)return;
+  const rn=Object.fromEntries(state.rooms.map(r=>[r.id,r.name])),devs=progDevices();
+  const sig=devs.map(d=>d.addr+"|"+(d.name||"")+"|"+(rn[d.room_id]||"")).join()+"#"+progAddr;
+  const box=$("#progpick");if(box.dataset.sig===sig)return;box.dataset.sig=sig;
+  const groups={};for(const d of devs)(groups[rn[d.room_id]||"Ohne Raum"]??=[]).push(d);
+  box.replaceChildren(el("b",{},"Gerät wählen"),...(devs.length?Object.entries(groups).map(([room,list])=>
+    el("div",{},el("div",{class:"room"},room),el("div",{class:"chips"},list.map(d=>
+      el("button",{class:d.addr===progAddr?"on":"",onclick:()=>goto("programs/"+d.addr)},
+        d.name||"Unbenannt "+d.addr,el("small",{},KIND[d.kind]==="wall"?"Wandthermostat":"Heizkörper")))))):[el("div",{class:"addr"},"Keine Thermostate bekannt.")]));
+}
+async function showProgram(addr){
+  progAddr=addr;renderProgPick();
+  if(!addr||!state){$("#progtitle").textContent="Programme";$("#progsub").textContent="Wähle oben ein Gerät.";return;}
+  const d=state.devices.find(x=>x.addr===addr);
+  $("#progtitle").textContent=(d&&d.name)||"Unbenannt "+addr;
+  $("#progsub").textContent=(d?KINDDE[d.kind]:"Gerät")+" · "+addr+" · Wochenprofil sowie Komfort- und Eco-Temperatur";
+  await Promise.all([openProfile(addr),openCfg(addr)]);
+}
+
+/* -------------------------------------------------------- Kennzahlen */
+function renderAlerts(){
+  const a=$("#alerts"),D=state.devices,items=[];
+  for(const d of D){const n=d.name||d.addr;
+    if(d.battery_low)items.push("🔋 Batterie schwach: "+n);
+    if(d.is_open)items.push("🪟 Fenster offen: "+n);
+    if(d.last_seen&&(new Date(state.now)-new Date(d.last_seen))>6*3600e3)items.push("📡 seit über 6 h nichts gehört: "+n);}
+  const unnamed=D.filter(d=>!d.name).length;if(unnamed)items.push("✎ "+unnamed+" Geräte ohne Namen");
+  a.replaceChildren(el("b",{},"Hinweise"),...(items.length?items.map(t=>el("div",{style:"margin-top:6px"},t)):[el("div",{class:"addr",style:"margin-top:6px"},"Alles in Ordnung.")]));
+}
+function renderKpis(){
+  if(!state)return;renderAlerts();
+  const D=state.devices,heat=D.filter(d=>KIND[d.kind]==="heat"),wall=D.filter(d=>KIND[d.kind]==="wall"),
+        win=D.filter(d=>d.kind==="ShutterContact"),open=win.filter(d=>d.is_open),
+        batt=D.filter(d=>d.battery_low),s=state.status;
+  const temps=[...heat,...wall].map(d=>d.measured).filter(v=>v!=null);
+  const avg=temps.length?temps.reduce((a,b)=>a+b,0)/temps.length:null;
+  const cr=s.credit_last!=null?Math.floor(s.credit_last/106):null;
+  const k=(label,val,sub,cls="")=>el("div",{class:"kpi "+cls},el("small",{},label),el("b",{},val),el("span",{},sub));
+  $("#kpis").replaceChildren(
+    k("Geräte",String(D.length),heat.length+" Heizkörper · "+wall.length+" Wandthermostate · "+win.length+" Fenster"),
+    k("Räume",String(state.rooms.length),D.filter(d=>d.room_id).length+" Geräte zugeordnet"),
+    k("Ø Temperatur",avg==null?"–":fmt(avg," °C"),"über alle Thermostate"),
+    k("Fenster offen",open.length+" / "+win.length,open.length?open.map(d=>d.name||d.addr).join(", "):"alle geschlossen",open.length?"warn":""),
+    k("Batterie schwach",String(batt.length),batt.length?batt.map(d=>d.name||d.addr).join(", "):"alles in Ordnung",batt.length?"bad":""),
+    k("Sendekontingent",cr==null?"–":String(cr),"Sendungen verfügbar (1 %-Regel)",cr!=null&&cr<3?"warn":""),
+    k("Funk",s.connected?"verbunden":"getrennt","letztes Telegramm "+ago(s.last_telegram),s.connected?"":"bad"));
+}
+
+/* ----------------------------------------------------------- Konsole */
+let conAll=[],conLast=0,conTimer=null,conPaused=false;
+const conBox=$("#console");
+function conLine(e){
+  const row=el("div",{class:e.dir});
+  const dirTxt={rx:"RX",tx:"TX",info:"··"}[e.dir]||e.dir;
+  row.append(el("span",{class:"t"},e.ts+" "),el("b",{},dirTxt+" "));
+  if(e.type_name){
+    row.append(el("span",{class:"adr"},e.src+" → "+e.dst),
+      " "+e.type_name+(e.rssi!=null?"  "+Math.round(e.rssi)+" dBm":""),
+      el("span",{class:"dim"},"  #"+e.cnt+" "+(e.desc?"· "+e.desc:(e.payload?"· "+e.payload:""))));
+    if(e.note)row.append(el("span",{class:"dim"}," ("+e.note+")"));
+  }else row.append(e.note?e.note+"  ":"",el("span",{class:"dim"},e.raw));
+  if($("#conraw").checked)row.append(el("div",{class:"dim"},"    "+e.raw+(e.payload?"   payload="+e.payload:"")));
+  return row;
+}
+function conOk(e){
+  const f=$("#confilter").value,a=$("#consrc").value.trim().toUpperCase();
+  if(f&&e.dir!==f)return false;
+  if(a&&!((e.src||"")+(e.dst||"")).includes(a))return false;
+  return true;
+}
+function conRender(){
+  const near=conBox.scrollHeight-conBox.scrollTop-conBox.clientHeight<60;
+  conBox.replaceChildren(...conAll.filter(conOk).slice(-800).map(conLine));
+  $("#concount").textContent=conAll.length+" Einträge im Puffer";
+  if(near)conBox.scrollTop=conBox.scrollHeight;
+}
+async function conPoll(){
+  if(conPaused)return;
+  const r=await api("/api/console?since="+conLast);
+  if(r.status!==200)return;
+  const d=r.data;
+  if(d.last<conLast){conAll=[];}                 // server restarted
+  conLast=d.last;
+  if(d.entries.length){conAll=conAll.concat(d.entries).slice(-2000);conRender();}
+}
+function conStart(){conStop();conPoll();conTimer=setInterval(conPoll,1000);}
+function conStop(){clearInterval(conTimer);conTimer=null;}
+$("#conpause").onclick=()=>{conPaused=!conPaused;$("#conpause").textContent=conPaused?"▶ Weiter":"⏸ Pause";if(!conPaused)conPoll();};
+$("#conclear").onclick=()=>{conAll=[];conRender();};
+["#confilter","#consrc","#conraw"].forEach(s=>$(s).addEventListener("input",conRender));
+
+/* ----------------------------------------------------- Einstellungen */
+function field(label,input){return el("label",{},label,input);}
+function msgEl(){return el("div",{class:"msg"});}
+function say(m,text,ok){m.textContent=text;m.className="msg "+(ok?"ok":"bad");}
+async function renderAccount(){
+  const ab=$("#accountbox");
+  const old=el("input",{type:"password",autocomplete:"current-password"}),nw=el("input",{type:"password",autocomplete:"new-password"}),m=msgEl();
+  ab.replaceChildren(
+    el("div",{},"Angemeldet als ",el("b",{},ME.username)," ("+ROLEDE[ME.role]+")"),
+    el("div",{class:"grid"},field("Altes Passwort",old),field("Neues Passwort (min. 8 Zeichen)",nw)),
+    el("div",{class:"row"},el("button",{class:"pri",onclick:async()=>{
+      const r=await api("/api/password",{old:old.value,new:nw.value});
+      say(m,r.data.ok?"Passwort geändert.":r.data.error||"Fehler",r.data.ok);if(r.data.ok){old.value=nw.value="";}}},"Passwort ändern"),
+      el("button",{onclick:logout},"Abmelden")),m);
+}
+async function renderUsers(){
+  const r=await api("/api/users");if(r.status!==200)return;
+  const box=$("#usersbox"),m=msgEl();
+  const tbl=el("table",{},el("tr",{},...["Benutzer","Rolle","Letzte Anmeldung",""].map(h=>el("th",{},h))));
+  for(const u of r.data.users){
+    const sel_=el("select",{onchange:async e=>{const x=await api("/api/users",{action:"role",id:u.id,role:e.target.value});
+      if(!x.data.ok){say(m,x.data.error||"Fehler",false);renderUsers();}}},
+      r.data.roles.map(ro=>el("option",{value:ro,...(ro===u.role?{selected:""}:{})},ROLEDE[ro])));
+    tbl.append(el("tr",{},el("td",{},u.username+(u.id===ME.id?" (du)":"")),el("td",{},sel_),
+      el("td",{},u.last_login?u.last_login.replace("T"," "):"nie"),
+      el("td",{},el("div",{class:"acts"},
+        el("button",{onclick:async()=>{const p=await dialog("Neues Passwort für "+u.username+" (min. 8 Zeichen):",{input:"",pw:true});
+          if(!p)return;const x=await api("/api/users",{action:"password",id:u.id,password:p});say(m,x.data.ok?"Passwort gesetzt.":x.data.error,x.data.ok);}},"Passwort"),
+        u.id===ME.id?"":el("button",{onclick:async()=>{if(!await askOk("Benutzer „"+u.username+"“ löschen?"))return;
+          const x=await api("/api/users",{action:"delete",id:u.id});if(x.data.ok)renderUsers();else say(m,x.data.error,false);}},"Löschen")))));
+  }
+  const nu=el("input",{type:"text",autocomplete:"off"}),np=el("input",{type:"password",autocomplete:"new-password"});
+  const nr=el("select",{},r.data.roles.map(ro=>el("option",{value:ro,...(ro==="operator"?{selected:""}:{})},ROLEDE[ro])));
+  box.replaceChildren(tbl,
+    el("div",{class:"grid"},field("Neuer Benutzer",nu),field("Passwort (min. 8 Zeichen)",np),field("Rolle",nr)),
+    el("div",{class:"row"},el("button",{class:"pri",onclick:async()=>{
+      const x=await api("/api/users",{action:"create",username:nu.value,password:np.value,role:nr.value});
+      if(x.data.ok)renderUsers();else say(m,x.data.error||"Fehler",false);}},"Benutzer anlegen")),
+    el("div",{class:"addr"},"Administrator: alles · Bediener: Thermostate, Räume, Profile, Pairing · Nur lesen: ansehen"),m);
+}
+const fsize=b=>b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" kB";
+async function renderBackup(){
+  const r=await api("/api/backups");if(r.status!==200)return;
+  const d=r.data,box=$("#backupbox"),m=msgEl();
+  const auto=el("input",{type:"checkbox",...(d.settings.auto?{checked:""}:{})}),keep=el("input",{type:"number",min:1,max:365,value:d.settings.keep,style:"width:90px"});
+  const tbl=el("table",{},el("tr",{},...["Datei","Erstellt","Größe","Art",""].map(h=>el("th",{},h))));
+  for(const b of d.backups)tbl.append(el("tr",{},el("td",{},b.name),el("td",{},b.created.replace("T"," ")),el("td",{},fsize(b.size)),
+    el("td",{},b.auto?"automatisch":/vorher/.test(b.name)?"vor Wiederherstellung":"manuell"),
+    el("td",{},el("div",{class:"acts"},
+      el("a",{class:"btnlink",href:"/api/backup/download?name="+encodeURIComponent(b.name),download:b.name},"Herunterladen"),
+      el("button",{onclick:async()=>{if(!await askOk("Datenbank aus „"+b.name+"“ wiederherstellen? Der aktuelle Stand wird vorher als Backup gesichert, danach lädt die Seite neu."))return;
+        const x=await api("/api/backup",{action:"restore",name:b.name});if(x.data.ok){await askOk("Wiederhergestellt.",true);location.reload();}else say(m,x.data.error||"Fehler",false);}},"Wiederherstellen"),
+      el("button",{onclick:async()=>{if(!await askOk("Backup „"+b.name+"“ löschen?"))return;
+        const x=await api("/api/backup",{action:"delete",name:b.name});if(x.data.ok)renderBackup();else say(m,x.data.error,false);}},"Löschen")))));
+  box.replaceChildren(
+    el("div",{class:"row"},el("button",{class:"pri",onclick:async()=>{const x=await api("/api/backup",{action:"create"});
+      if(x.data.ok)renderBackup();else say(m,x.data.error||"Fehler",false);}},"Jetzt Backup erstellen")),
+    d.backups.length?tbl:el("div",{class:"addr"},"Noch keine Backups."),
+    el("div",{class:"row"},el("label",{class:"chk"},auto," täglich automatisch sichern (ab 03:00 Uhr), die letzten "),keep,el("span",{}," behalten"),
+      el("button",{onclick:async()=>{const x=await api("/api/backup",{action:"settings",auto:auto.checked,keep:keep.value});
+        say(m,x.data.ok?"Gespeichert.":x.data.error||"Fehler",x.data.ok);}},"Speichern")),
+    el("div",{class:"addr"},"Ablageort auf dem Server: "+d.dir+(d.error?" · Fehler beim Auto-Backup: "+d.error:"")+". Backups enthalten Passwort-Hashes und das MQTT-Passwort – sicher aufbewahren. Manuelle Backups werden nicht automatisch gelöscht."),m);
+}
+async function renderMqtt(){
+  const r=await api("/api/mqtt");if(r.status!==200)return;
+  const c=r.data.config,st=r.data.status,box=$("#mqttbox"),m=msgEl();
+  const inp=(v,t="text",extra={})=>el("input",{type:t,value:v??"",autocomplete:"off",...extra});
+  const en=el("input",{type:"checkbox",...(c.enabled?{checked:""}:{})});
+  const tls=el("input",{type:"checkbox",...(c.tls?{checked:""}:{})});
+  const disc=el("input",{type:"checkbox",...(c.discovery?{checked:""}:{})});
+  const host=inp(c.host),port=inp(c.port,"number",{min:1,max:65535}),usr=inp(c.username),
+        pw=inp("","password",{placeholder:c.password_set?"(gespeichert – leer lassen zum Behalten)":"",autocomplete:"new-password"}),
+        base=inp(c.base),pre=inp(c.discovery_prefix);
+  const stat=el("div",{class:"addr"},"Status: "+(!st.enabled?"deaktiviert":st.connected?"verbunden seit "+(st.since||"").replace("T"," ")+" · "+st.published+" Nachrichten veröffentlicht":"nicht verbunden"+(st.error?" – "+st.error:"")));
+  box.replaceChildren(stat,
+    el("label",{class:"chk"},en," MQTT aktivieren"),
+    el("div",{class:"grid"},field("Broker (Host/IP)",host),field("Port",port),field("Benutzer (optional)",usr),field("Passwort",pw),field("Basis-Topic",base),field("Discovery-Präfix",pre)),
+    el("label",{class:"chk"},tls," TLS (verschlüsselt, Standardport 8883)"),
+    el("label",{class:"chk"},disc," Home-Assistant-Discovery (Geräte automatisch anlegen)"),
+    el("div",{class:"row"},el("button",{class:"pri",onclick:async()=>{
+      const x=await api("/api/mqtt",{enabled:en.checked,host:host.value,port:port.value,username:usr.value,password:pw.value,
+        tls:tls.checked,base:base.value,discovery:disc.checked,discovery_prefix:pre.value});
+      if(x.data.ok){say(m,"Gespeichert – Verbindung wird neu aufgebaut.",true);setTimeout(renderMqtt,2500);}else say(m,x.data.error||"Fehler",false);}},"Speichern"),
+      el("button",{onclick:renderMqtt},"Status aktualisieren")),
+    el("div",{class:"addr"},"Zustände: "+(c.base||"max")+"/<Adresse>/state · Befehle: "+(c.base||"max")+"/<Adresse>/set/temperature (z. B. 21.5) und …/set/mode (auto|heat) · Online-Status: "+(c.base||"max")+"/status. Das MQTT-Passwort liegt unverschlüsselt in der Datenbank."),m);
+}
+
+/* ------------------------------------------------------- Anmeldung */
+async function logout(){await api("/api/logout",{});location.reload();}
+function showLogin(setup){
+  $("#login").hidden=false;
+  $("#lp2wrap").hidden=!setup;$("#lp2").required=setup;
+  $("#loginbtn").textContent=setup?"Administrator anlegen":"Anmelden";
+  $("#loginhint").textContent=setup?"Ersteinrichtung: lege den ersten Administrator an.":"Bitte anmelden.";
+  $("#lp").autocomplete=setup?"new-password":"current-password";
+  $("#loginform").onsubmit=async e=>{e.preventDefault();
+    const m=$("#loginmsg");m.textContent="";
+    if(setup&&$("#lp").value!==$("#lp2").value){m.textContent="Passwörter stimmen nicht überein.";return;}
+    const r=await api(setup?"/api/setup":"/api/login",{username:$("#lu").value,password:$("#lp").value});
+    if(r.data.ok)location.reload();else m.textContent=r.data.error||"Fehler";};
+  $("#lu").focus();
+}
+let started=false;
+onUnauth=()=>{if(!started||$("#login").hidden===false)return;location.reload();};
+async function init(){
+  const a=(await api("/api/auth")).data;
+  if(a.setup)return showLogin(true);
+  if(!a.user)return showLogin(false);
+  ME=a.user;started=true;
+  $("#who").replaceChildren(el("span",{class:"av"},ME.username[0].toUpperCase()),el("span",{},ME.username+" · "+ROLEDE[ME.role]),el("button",{onclick:logout},"Abmelden"));
+  document.querySelectorAll("#nav [data-admin]").forEach(a=>a.hidden=ME.role!=="admin");
+  document.body.classList.toggle("ro",ME.role==="viewer");
+  const _load=load;
+  load=async function(){await _load();fillHist();renderKpis();renderProgPick();};
+  await load();goto(location.hash.slice(1)||"home");setInterval(load,5000);setInterval(drawChart,60000);
+}
+init();
+</script>
+</body>
+</html>

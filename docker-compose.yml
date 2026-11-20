@@ -1,0 +1,19 @@
+services:
+  max:
+    build: .
+    restart: unless-stopped
+    environment:
+      # culfw over the network (Cube LAN port) ...
+      MAX_PORT: tcp://192.168.1.50:2323
+      # ... or a USB serial bridge / device (see README notes):
+      # MAX_PORT: /dev/ttyUSB0
+      TZ: Europe/Berlin        # used for the thermostat clock sync
+    volumes:
+      - max-data:/data
+    ports:
+      - "127.0.0.1:8080:8080"  # no login: only expose to the LAN deliberately
+    # devices:                  # Linux host with the Cube attached via USB
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+
+volumes:
+  max-data:

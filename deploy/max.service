@@ -1,0 +1,16 @@
+[Unit]
+Description=MAX! Zentrale (Heizungssteuerung)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Als Benutzer mit Zugriff auf den seriellen Port (Gruppe dialout) laufen lassen.
+User=max
+WorkingDirectory=/opt/max
+Environment=MAX_HOST=0.0.0.0 MAX_DB=/var/lib/max/max.db MAX_PORT=/dev/ttyACM0 TZ=Europe/Berlin
+ExecStart=/usr/bin/python3 -u max_server.py --http 8080
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
