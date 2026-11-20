@@ -7,11 +7,12 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import max_alerts                                       # noqa: E402
 import max_auth                                         # noqa: E402
 import max_backup                                       # noqa: E402
 from max_logger import SCHEMA, decode, parse_telegram   # noqa: E402
 from max_send import build_raw, encode_day, time_payload, week_profile_packets  # noqa: E402
-from max_server import config_payload, validate_config, CFG_DEFAULT  # noqa: E402
+from max_server import EXTRA_SCHEMA, config_payload, validate_config, CFG_DEFAULT  # noqa: E402
 
 
 class Protocol(unittest.TestCase):
@@ -101,6 +102,30 @@ class Backup(unittest.TestCase):
         self.assertTrue(any(b["name"].endswith("-vorher.db") for b in max_backup.listing(db)))
         with self.assertRaises(ValueError):
             max_backup.path_of(db, "../../etc/passwd")
+        c.close()
+
+
+class Alerts(unittest.TestCase):
+    def test_battery_alarm_lifecycle(self):
+        tmp = tempfile.mkdtemp()
+        db = os.path.join(tmp, "t.db")
+        c = sqlite3.connect(db)
+        c.executescript(SCHEMA + EXTRA_SCHEMA + max_auth.AUTH_SCHEMA)
+        c.execute("INSERT INTO devices(addr,kind,battery_low) VALUES('1A0001','HeatingThermostat',0)")
+        c.commit()
+        a = max_alerts.Alerter(db)
+        a.check()
+        self.assertEqual(max_alerts.open_alerts(db), [])
+        c.execute("UPDATE devices SET battery_low=1")
+        c.commit()
+        a.check()
+        a.check()                                           # no duplicate alarm
+        self.assertEqual(len(max_alerts.open_alerts(db)), 1)
+        c.execute("UPDATE devices SET battery_low=0")
+        c.commit()
+        a.check()
+        self.assertEqual(max_alerts.open_alerts(db), [])
+        self.assertEqual(len(max_alerts.history(db)), 1)
         c.close()
 
 

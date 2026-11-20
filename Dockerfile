@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends tzdata \
     && pip install --no-cache-dir pyserial==3.5
 
 WORKDIR /app
-COPY max_logger.py max_send.py max_auth.py max_mqtt.py max_backup.py max_server.py ./
+COPY max_logger.py max_send.py max_auth.py max_mqtt.py max_backup.py max_alerts.py max_server.py ./
 COPY web ./web
 
 # Inside the container the UI must listen on all interfaces; the compose file

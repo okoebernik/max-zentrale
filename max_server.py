@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 
 import serial
 
+import max_alerts
 import max_backup
 from max_auth import COOKIE, ROLES, Auth, get_setting, put_setting
 from max_logger import (DEVICE_TYPES, MSG_TYPES, SCHEMA, decode,
@@ -391,7 +392,9 @@ def build_state(db_path, worker):
     pairing = {"remaining": max(0, round(worker.pairing_until - time.time())),
                "events": [{k: v for k, v in e.items() if k != "t"}
                           for e in worker.pair_events]}
-    return {"devices": devices, "rooms": rooms, "pairing": pairing,
+    alerts = q(db_path, "SELECT addr, kind, since FROM alerts WHERE cleared IS NULL "
+                        "ORDER BY since")
+    return {"devices": devices, "rooms": rooms, "pairing": pairing, "alerts": alerts,
             "now": datetime.now().isoformat(timespec="seconds"),
             "status": worker.status, "source": worker.src}
 
@@ -556,6 +559,13 @@ class Handler(BaseHTTPRequestHandler):
             since = int((qs.get("since") or ["0"])[0] or 0)
             entries, last = worker.console_since(since)
             return self.reply(200, {"last": last, "entries": entries[-400:]})
+        if u.path == "/api/alerts":
+            out = {"open": max_alerts.open_alerts(db), "history": max_alerts.history(db)}
+            if self.user()["role"] == "admin":
+                cfg = max_alerts.load(db)
+                cfg["email"]["password_set"] = bool(cfg["email"].pop("password", ""))
+                out.update(settings=cfg, status=self.server.alerter.status)
+            return self.reply(200, out)
         if u.path == "/api/users":
             if not self.allowed("admin"):
                 return
@@ -692,6 +702,41 @@ class Handler(BaseHTTPRequestHandler):
             except (ValueError, TypeError) as e:
                 return self.reply(400, {"error": str(e)})
             return self.reply(200, {"ok": True})
+        if self.path == "/api/alerts":
+            if not self.allowed("admin"):
+                return
+            old = max_alerts.load(db)
+            if data.get("action") == "settings":
+                e = data.get("email") or {}
+                try:
+                    port = int(e.get("port") or 587)
+                    rep_h = int(data.get("repeat_hours") or 24)
+                    if not (1 <= port <= 65535 and 1 <= rep_h <= 720):
+                        raise ValueError
+                except (TypeError, ValueError):
+                    return self.reply(400, {"error": "Port 1-65535, Erinnerung 1-720 Stunden"})
+                sec = e.get("security") if e.get("security") in ("none", "starttls", "ssl") else "starttls"
+                to = ",".join(x.strip() for x in str(e.get("to") or "").split(",") if x.strip())[:300]
+                if bool(e.get("enabled")) and (not str(e.get("host") or "").strip() or "@" not in to):
+                    return self.reply(400, {"error": "E-Mail aktiv: SMTP-Server und gültigen Empfänger angeben"})
+                cfg = {"repeat_hours": rep_h, "email": {
+                    "enabled": bool(e.get("enabled")), "host": str(e.get("host") or "").strip()[:200],
+                    "port": port, "security": sec, "username": str(e.get("username") or "")[:200],
+                    "password": (str(e["password"])[:200] if e.get("password") else old["email"]["password"]),
+                    "sender": str(e.get("sender") or "").strip()[:200], "to": to}}
+                if e.get("clear_password"):
+                    cfg["email"]["password"] = ""
+                put_setting(db, "alerts", json.dumps(cfg))
+                self.server.alerter.wake.set()
+                return self.reply(200, {"ok": True})
+            if data.get("action") == "test":
+                try:
+                    max_alerts.send_mail(old, "MAX! Zentrale: Testnachricht",
+                                         "Diese Testnachricht bestätigt, dass die E-Mail-Benachrichtigung funktioniert.")
+                except Exception as ex:
+                    return self.reply(502, {"ok": False, "error": str(ex) or repr(ex)})
+                return self.reply(200, {"ok": True})
+            return self.reply(400, {"error": "unbekannte Aktion"})
         if self.path == "/api/backup":
             if not self.allowed("admin"):
                 return
@@ -996,12 +1041,15 @@ def main():
     auth = Auth(args.db)
     bridge = Bridge(args.db, worker, build_state, run_set)
     autobackup = max_backup.AutoBackup(args.db)
+    alerter = max_alerts.Alerter(args.db)
     worker.start()
     bridge.start()
     autobackup.start()
+    alerter.start()
     srv = ThreadingHTTPServer((args.host, args.http), Handler)
     srv.db_path, srv.worker, srv.auth, srv.bridge = args.db, worker, auth, bridge
     srv.autobackup = autobackup
+    srv.alerter = alerter
     print(f"MAX! UI on http://{args.host}:{args.http}/  (serial {args.port})")
     try:
         srv.serve_forever()

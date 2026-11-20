@@ -5,6 +5,7 @@
 * Jede Seite und jede API-Antwort außer der Anmeldeseite, dem Logo und dem Status „Einrichtung
   nötig?“ verlangt eine Anmeldung.
 * Passwörter werden mit **scrypt** (n=2¹⁴, r=8, p=1, 16 Byte Salt) gespeichert, nie im Klartext.
+* Das **SMTP-Passwort** für die Alarm-E-Mails wird dagegen unverschlüsselt in der Datenbank (Tabelle `settings`) abgelegt, weil es zum Anmelden beim Mailserver im Klartext gebraucht wird – gilt auch für Backups. Am besten ein eigenes Postfach/Konto nur für diesen Zweck nutzen.
 * Die Sitzung ist ein zufälliger 256-Bit-Token im Cookie `max_session` (`HttpOnly`,
   `SameSite=Strict`, 30 Tage). In der Datenbank liegt nur dessen SHA-256-Hash. Beim Abmelden und
   bei einer Passwortänderung werden die Sitzungen gelöscht (bei der Änderung des eigenen

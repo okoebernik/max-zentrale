@@ -9,6 +9,7 @@ max_send.py     Telegramme bauen (SetTemperature, Zeit, Wochenprofil), einfaches
 max_auth.py     Benutzer, Rollen, Sitzungen, Einstellungs-Tabelle
 max_mqtt.py     Minimaler MQTT-3.1.1-Client und die Brücke (State, Befehle, Discovery)
 max_backup.py   Online-Backups der Datenbank, Wiederherstellung, Automatik
+max_alerts.py   Alarme (schwache Batterie) und E-Mail-Versand
 web/            Single-Page-Oberfläche (index.html, logo.svg), kein Build-Schritt
 tools/          Simulator, Demo-Datenbank, Screenshot-Skript
 tests/          Unit-Tests (unittest)
@@ -26,6 +27,7 @@ der Standardbibliothek, die Oberfläche reines HTML/CSS/JavaScript ohne Framewor
 | HTTP-Server | ein Thread je Anfrage; spricht mit dem Worker nur über Warteschlangen (`jobs`, `prio`) |
 | `Bridge` (MQTT) | verbindet sich zum Broker, veröffentlicht Zustände, führt Befehle in eigenen Threads aus |
 | `AutoBackup` | prüft minütlich, ob das Tagesbackup fällig ist |
+| `Alerter` | alle 30 s: Batterie-Alarme öffnen/schließen, E-Mails und Erinnerungen senden |
 
 Der Worker ist die einzige Stelle, die auf den Funk-Port schreibt. Aufträge (`Job`) tragen den
 Typ (`set`, `time`, `raw`), und das Ergebnis kommt über ein `threading.Event` zurück.
@@ -41,6 +43,7 @@ Pairing-Antworten laufen über die Prioritätswarteschlange und unterbrechen war
 | `names`, `rooms`, `device_room` | Namen und Räume |
 | `profiles`, `device_config` | zuletzt gesendete Wochenprofile und Konfiguration |
 | `users`, `sessions` | Benutzerverwaltung |
+| `alerts` | Alarme (Gerät, Art, seit, zuletzt gemeldet, behoben) |
 | `settings` | Schlüssel/Wert (MQTT, Backup) |
 
 Das Schema wird beim Start per `CREATE TABLE IF NOT EXISTS` angelegt.
@@ -70,6 +73,8 @@ Alle Endpunkte außer den ersten drei verlangen eine Anmeldung (Cookie). Antwort
 | `POST /api/config`, `/api/preset` | B | Komfort/Eco-Konfiguration senden; `{preset: comfort\|eco}` |
 | `POST /api/display`, `/api/time` | B | Anzeige Ist/Soll, Uhrzeit stellen |
 | `POST /api/pairing` | B | `{enable: true\|false}` |
+| `GET /api/alerts` | V | offene und behobene Alarme (Administratoren zusätzlich E-Mail-Einstellungen) |
+| `POST /api/alerts` | A | `{action:"settings"\|"test", …}` |
 | `GET/POST /api/users` | A | Benutzer verwalten |
 | `GET/POST /api/mqtt` | A | MQTT-Einstellungen und Status |
 | `GET /api/backups`, `GET /api/backup/download?name=`, `POST /api/backup` | A | Backups |

@@ -22,6 +22,8 @@
 #nav a svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #nav a:hover{background:color-mix(in srgb,var(--blue) 12%,transparent)} #nav a.on{background:var(--blue);color:var(--onpri)}
 #nav a[hidden]{display:none}
+.nb{margin-left:auto;background:var(--bad);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px} .nb[hidden]{display:none}
+#alertbadge{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad);border:1px solid var(--bad);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;text-decoration:none} #alertbadge[hidden]{display:none}
 #topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 20px;background:var(--side);border-bottom:1px solid var(--line);margin-left:230px}
 #who{display:inline-flex;gap:8px;align-items:center;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 4px;background:var(--bg)}
 #who .av{width:24px;height:24px;border-radius:50%;background:var(--blue);color:var(--onpri);display:grid;place-items:center;font-size:12px;font-weight:700}
@@ -178,6 +180,7 @@ button.nm:hover .pen{color:var(--blue)}
 <a href="#pairing" data-p="pairing"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Pairing</a>
 <div class="grp">Betrieb</div>
 <a href="#telegrams" data-p="telegrams"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Funktelegramme</a>
+<a href="#alerts" data-p="alerts"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alarme<span id="navbadge" class="nb" hidden></span></a>
 <a href="#console" data-p="console"><svg viewBox="0 0 24 24"><path d="M4 17l6-5-6-5"/><path d="M12 19h8"/></svg>Konsole</a>
 <div class="grp">Verwaltung</div>
 <a href="#account" data-p="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Mein Konto</a>
@@ -185,7 +188,7 @@ button.nm:hover .pen{color:var(--blue)}
 <a href="#backup" data-p="backup" data-admin><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Backup</a>
 <a href="#mqtt" data-p="mqtt" data-admin><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>MQTT</a>
 </nav></aside>
-<div id="topbar"><div id="status">lädt …</div><button id="themebtn" title="Farbschema wechseln"></button><span id="who"></span></div>
+<div id="topbar"><a id="alertbadge" href="#alerts" hidden></a><div id="status">lädt …</div><button id="themebtn" title="Farbschema wechseln"></button><span id="who"></span></div>
 <script>
 (function(){
   const modes=["auto","light","dark"],labels={auto:"◐ Auto",light:"☀ Hell",dark:"☾ Dunkel"};
@@ -237,6 +240,13 @@ button.nm:hover .pen{color:var(--blue)}
 <div id="cfgbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
 <h2>Wochenprofil</h2>
 <div id="profbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
+</section>
+<section data-page="alerts">
+<div class="phead"><h1>Alarme</h1><p>Schwache Batterien – in der Oberfläche und optional per E-Mail.</p></div>
+<div class="setbox" id="alertsopen"></div>
+<div id="alertsadmin" hidden><h2>E-Mail-Benachrichtigung</h2><div class="setbox" id="alertsmail"></div></div>
+<h2>Verlauf</h2>
+<div class="setbox" id="alertshist"></div>
 </section>
 <section data-page="console">
 <div class="phead"><h1>Konsole</h1><p>Funkverkehr live: empfangene und gesendete Telegramme.</p></div>
@@ -653,7 +663,7 @@ $("#addroom").onclick=async()=>{
 document.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{hours=+b.dataset.h;drawChart();});
 
 /* ---------------------------------------------------------- navigation */
-const PAGES=["home","rooms","find","pairing","history","programs","console","telegrams","account","users","backup","mqtt"];
+const PAGES=["home","rooms","find","pairing","history","programs","alerts","console","telegrams","account","users","backup","mqtt"];
 let page="home";
 let progAddr=null;
 function goto(p){
@@ -672,6 +682,7 @@ function goto(p){
   if(p==="users")renderUsers();
   if(p==="mqtt")renderMqtt();
   if(p==="backup")renderBackup();
+  if(p==="alerts")renderAlerts2();
 }
 window.addEventListener("hashchange",()=>goto(location.hash.slice(1)));
 function fillHist(){
@@ -719,8 +730,41 @@ function renderAlerts(){
   const unnamed=D.filter(d=>!d.name).length;if(unnamed)items.push("✎ "+unnamed+" Geräte ohne Namen");
   a.replaceChildren(el("b",{},"Hinweise"),...(items.length?items.map(t=>el("div",{style:"margin-top:6px"},t)):[el("div",{class:"addr",style:"margin-top:6px"},"Alles in Ordnung.")]));
 }
+function renderBadge(){
+  const n=(state.alerts||[]).length,b=$("#alertbadge"),nb=$("#navbadge");
+  b.hidden=!n;nb.hidden=!n;b.textContent="🔋 "+n+(n===1?" Alarm":" Alarme");nb.textContent=n;
+}
+async function renderAlerts2(){
+  const r=await api("/api/alerts");if(r.status!==200)return;
+  const d=r.data,fm=t=>(t||"").replace("T"," ");
+  const open=$("#alertsopen");
+  open.replaceChildren(d.open.length?el("table",{},el("tr",{},...["Gerät","Raum","Problem","Seit","Zuletzt gemeldet"].map(h=>el("th",{},h))),
+    ...d.open.map(a=>el("tr",{},el("td",{},(a.name||"Unbenannt")+" · "+a.addr),el("td",{},a.room||"–"),el("td",{},"🔋 Batterie schwach"),el("td",{},fm(a.since)),el("td",{},a.last_notified?fm(a.last_notified):"–"))))
+    :el("div",{},"✓ Keine Alarme – alle Batterien in Ordnung."));
+  $("#alertshist").replaceChildren(d.history.length?el("table",{},el("tr",{},...["Gerät","Problem","Von","Behoben"].map(h=>el("th",{},h))),
+    ...d.history.map(a=>el("tr",{},el("td",{},(a.name||"Unbenannt")+" · "+a.addr),el("td",{},"Batterie schwach"),el("td",{},fm(a.since)),el("td",{},fm(a.cleared)))))
+    :el("div",{class:"addr"},"Noch keine behobenen Alarme."));
+  $("#alertsadmin").hidden=!d.settings;
+  if(!d.settings)return;
+  const c=d.settings.email,st=d.status,m=msgEl();
+  const inp=(v,t="text",x={})=>el("input",{type:t,value:v??"",autocomplete:"off",...x});
+  const en=el("input",{type:"checkbox",...(c.enabled?{checked:""}:{})});
+  const host=inp(c.host),port=inp(c.port,"number",{min:1,max:65535}),usr=inp(c.username),
+        pw=inp("","password",{placeholder:c.password_set?"(gespeichert – leer lassen zum Behalten)":"",autocomplete:"new-password"}),
+        sender=inp(c.sender,"text",{placeholder:"z. B. heizung@example.org"}),to=inp(c.to,"text",{placeholder:"empfaenger@example.org, weitere@example.org"}),
+        rep=inp(d.settings.repeat_hours,"number",{min:1,max:720});
+  const sec=el("select",{},[["starttls","STARTTLS (Port 587)"],["ssl","SSL/TLS (Port 465)"],["none","keine Verschlüsselung"]].map(([v,t])=>el("option",{value:v,...(v===c.security?{selected:""}:{})},t)));
+  const form=()=>({action:"settings",repeat_hours:rep.value,email:{enabled:en.checked,host:host.value,port:port.value,security:sec.value,username:usr.value,password:pw.value,sender:sender.value,to:to.value}});
+  $("#alertsmail").replaceChildren(
+    el("label",{class:"chk"},en," Bei schwacher Batterie eine E-Mail senden"),
+    el("div",{class:"grid"},field("SMTP-Server",host),field("Port",port),field("Verschlüsselung",sec),field("Benutzer (optional)",usr),field("Passwort",pw),field("Absender",sender),field("Empfänger (mehrere mit Komma)",to),field("Erinnerung alle … Stunden",rep)),
+    el("div",{class:"row"},el("button",{class:"pri",onclick:async()=>{const x=await api("/api/alerts",form());say(m,x.data.ok?"Gespeichert.":x.data.error||"Fehler",x.data.ok);}},"Speichern"),
+      el("button",{onclick:async()=>{const s1=await api("/api/alerts",form());if(!s1.data.ok)return say(m,s1.data.error||"Fehler",false);
+        say(m,"sende …",true);const x=await api("/api/alerts",{action:"test"});say(m,x.data.ok?"Testmail gesendet.":"Fehler: "+(x.data.error||x.status),x.data.ok);}},"Speichern & Testmail senden")),
+    el("div",{class:"addr"},"Die Meldung kommt beim Entstehen des Alarms und danach als Erinnerung, bis die Batterie getauscht ist."+(st.last_mail?" Letzte Mail: "+fm(st.last_mail)+".":"")+(st.last_error?" Letzter Fehler: "+st.last_error:"")+" Das SMTP-Passwort liegt unverschlüsselt in der Datenbank."),m);
+}
 function renderKpis(){
-  if(!state)return;renderAlerts();
+  if(!state)return;renderAlerts();renderBadge();
   const D=state.devices,heat=D.filter(d=>KIND[d.kind]==="heat"),wall=D.filter(d=>KIND[d.kind]==="wall"),
         win=D.filter(d=>d.kind==="ShutterContact"),open=win.filter(d=>d.is_open),
         batt=D.filter(d=>d.battery_low),s=state.status;

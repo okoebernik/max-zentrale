@@ -29,6 +29,7 @@ MAX! Cube.
 | **Pairing** | Neue oder zurückgesetzte Geräte koppeln, „Gerät finden“ (welches Gerät ist welches?) |
 | **Uhrzeit** | Automatische Uhrzeitsynchronisation, wenn ein Gerät eine falsche Zeit meldet |
 | **Verlauf** | Diagramme für Ist-, Soll-Temperatur und Ventilstellung (24 h / 7 Tage / 30 Tage) |
+| **Alarme** | Alarm bei schwacher Batterie in der Oberfläche, optional per E-Mail (SMTP) mit Erinnerung |
 | **Konsole** | Live-Anzeige des Funkverkehrs (RX/TX) mit Filtern, dazu eine Liste der letzten Telegramme |
 | **Benutzer** | Anmeldung, Rollen *Administrator*, *Bediener*, *Nur lesen*, Passwort-Hashing mit scrypt |
 | **Backup** | Online-Sicherung der Datenbank (manuell und täglich automatisch), Download, Wiederherstellung |

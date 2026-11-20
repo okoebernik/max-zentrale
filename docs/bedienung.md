@@ -5,7 +5,7 @@ Alle Bilder zeigen die **Demo-Installation** mit erfundenen Geräten (siehe
 Farbschema an (Umschalter *Auto / Hell / Dunkel* oben rechts) und ist auch auf dem Handy nutzbar.
 
 Das Seitenmenü links gliedert sich in **Übersicht, Räume, Verlauf, Programme**, die Gruppe
-**Geräte** (*Gerät finden*, *Pairing*), die Gruppe **Betrieb** (*Funktelegramme*, *Konsole*)
+**Geräte** (*Gerät finden*, *Pairing*), die Gruppe **Betrieb** (*Alarme*, *Funktelegramme*, *Konsole*)
 und die Gruppe **Verwaltung** (*Mein Konto*, *Benutzer*, *Backup*, *MQTT*). *Benutzer*, *Backup*
 und *MQTT* sehen nur Administratoren.
 
@@ -20,6 +20,7 @@ Sendekontingent), der Farbschema-Umschalter und dein Benutzer mit „Abmelden“
 * [Gerät finden](#gerät-finden)
 * [Pairing](#pairing)
 * [Funktelegramme](#funktelegramme)
+* [Alarme](#alarme)
 * [Konsole](#konsole)
 * [Konto, Benutzer](#mein-konto)
 * [Backup](#backup)
@@ -141,6 +142,25 @@ Die zuletzt empfangenen 60 Telegramme als Tabelle (Zeit, Absender, Empfänger, T
 Signalstärke in dBm, Rohdaten der Nutzlast). Aktualisiert sich alle 5 Sekunden.
 
 ![Funktelegramme](screenshots/08-funktelegramme.png)
+
+## Alarme
+
+Meldet ein Gerät **„Batterie schwach“**, entsteht automatisch ein Alarm: oben in der Kopfleiste
+erscheint ein roter Zähler („🔋 1 Alarm“), im Menü ein Zähler am Punkt *Alarme* und auf der
+Übersicht ein Hinweis. Die Seite listet offene Alarme (Gerät, Raum, seit wann, wann zuletzt
+gemeldet) und darunter den Verlauf der behobenen. Sobald das Gerät eine frische Batterie meldet,
+endet der Alarm von selbst.
+
+Administratoren können zusätzlich eine **E-Mail-Benachrichtigung** einrichten: SMTP-Server, Port,
+Verschlüsselung (STARTTLS, SSL/TLS oder keine), Benutzer/Passwort, Absender und Empfänger (mehrere
+mit Komma getrennt). Die Mail kommt, sobald der Alarm entsteht, und danach als Erinnerung im
+eingestellten Abstand (Standard 24 Stunden), bis die Batterie getauscht ist. *Speichern &
+Testmail senden* prüft die Einstellungen. Schlägt der Versand fehl, wird nach 15 Minuten erneut
+versucht und der Fehler auf der Seite angezeigt. Das SMTP-Passwort liegt unverschlüsselt in der
+Datenbank. Über MQTT steht der Batteriestatus jedes Geräts zusätzlich als Sensor bereit
+([MQTT](mqtt.md)).
+
+![Alarme](screenshots/18-alarme.png)
 
 ## Konsole
 

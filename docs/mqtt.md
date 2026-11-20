@@ -63,7 +63,7 @@ bestätigt und müssen auf das Sendekontingent warten.
 | `mode` | `auto`, `manual`, `vacation`, `boost` |
 | `ha_mode` | `auto` oder `heat` (für Home Assistant abgeleitet) |
 | `open` | Fensterkontakt: `true` = offen (sonst `null`) |
-| `battery_low` | Batterie schwach |
+| `battery_low` | Batterie schwach (in Home Assistant als Batterie-Sensor; E-Mail-Alarme: siehe [Bedienung](bedienung.md#alarme)) |
 | `rssi` | Empfangsstärke des letzten Telegramms in dBm |
 | `last_seen` | Zeitpunkt des letzten Telegramms (lokale Zeit des Servers) |
 
