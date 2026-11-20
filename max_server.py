@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);
 CREATE TABLE IF NOT EXISTS device_room (
     addr TEXT PRIMARY KEY, room_id INTEGER REFERENCES rooms(id));
+CREATE TABLE IF NOT EXISTS links (
+    a TEXT, b TEXT, sent_at TEXT, PRIMARY KEY (a, b));
 CREATE TABLE IF NOT EXISTS profiles (
     addr TEXT, day TEXT, points TEXT, sent_at TEXT, PRIMARY KEY (addr, day));
 """
@@ -394,7 +396,7 @@ def build_state(db_path, worker):
                           for e in worker.pair_events]}
     alerts = q(db_path, "SELECT addr, kind, since FROM alerts WHERE cleared IS NULL "
                         "ORDER BY since")
-    return {"devices": devices, "rooms": rooms, "pairing": pairing, "alerts": alerts,
+    return {"devices": devices, "rooms": rooms, "pairing": pairing, "alerts": alerts, "links": q(db_path, "SELECT a, b, sent_at FROM links ORDER BY a, b"),
             "now": datetime.now().isoformat(timespec="seconds"),
             "status": worker.status, "source": worker.src}
 
@@ -922,6 +924,45 @@ class Handler(BaseHTTPRequestHandler):
                            datetime.now().isoformat(timespec="seconds")))
                 c.commit(); c.close()
             return self.reply(200 if job.result["ok"] else 502, job.result)
+
+        if self.path == "/api/link":
+            # link two devices (AddLinkPartner 0x20 / RemoveLinkPartner 0x21), sent to both
+            partner = str(data.get("partner") or "").upper()
+            remove = bool(data.get("remove"))
+            kinds = {r["addr"]: r["kind"] for r in q(db, "SELECT addr, kind FROM devices "
+                                                         "WHERE addr IN (?,?)", (addr, partner))}
+            if addr == partner or addr not in kinds or partner not in kinds:
+                return self.reply(400, {"error": "unknown devices"})
+            tstat = ("HeatingThermostat", "HeatingThermostatPlus", "WallThermostat")
+            if not any(k in tstat and kinds[o] in tstat + ("ShutterContact",)
+                       for k, o in ((kinds[addr], partner), (kinds[partner], addr))):
+                return self.reply(400, {"error": "ein Partner muss ein Thermostat sein"})
+            if kinds[addr] == "ShutterContact" and kinds[partner] == "ShutterContact":
+                return self.reply(400, {"error": "zwei Fensterkontakte lassen sich nicht verknüpfen"})
+            tcode = {v: k for k, v in DEVICE_TYPES.items()}
+            res = {"ok": True}
+            for dst, other in ((addr, partner), (partner, addr)):
+                job = Job(dst, 0.0, "raw")
+                job.kind = "raw"
+                job.raw = build_raw(worker.src, dst, 0x21 if remove else 0x20,
+                                    bytes.fromhex(other) + bytes([tcode[kinds[other]]]))
+                worker.jobs.put(job)
+                if not job.done.wait(30):
+                    job.cancelled = True
+                    return self.reply(504, {"ok": False, "error": "Timeout bei %s (kein Sendekontingent oder keine Antwort)" % dst})
+                if not job.result["ok"]:
+                    return self.reply(502, {"ok": False, "error": "%s hat nicht bestätigt: %s" % (
+                        dst, job.result.get("error", ""))})
+            a, b = sorted((addr, partner))
+            c = sqlite3.connect(db)
+            if remove:
+                c.execute("DELETE FROM links WHERE a=? AND b=?", (a, b))
+            else:
+                c.execute("INSERT INTO links(a,b,sent_at) VALUES(?,?,?) ON CONFLICT(a,b) "
+                          "DO UPDATE SET sent_at=excluded.sent_at",
+                          (a, b, datetime.now().isoformat(timespec="seconds")))
+            c.commit(); c.close()
+            return self.reply(200, res)
 
         if self.path == "/api/display":
             # wall thermostat: show the actual temperature (True) or setpoint

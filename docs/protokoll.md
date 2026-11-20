@@ -102,6 +102,15 @@ Geräte erwarten ihre Befehle von der Adresse ihres Cubes; deshalb nutzt man bei
 des alten Cubes weiter. Auf eine fremde Adresse reagiert ein Gerät nicht – außer beim Pairing,
 bei dem es sich an den Absender der PairPong-Antwort bindet.
 
+## Verknüpfungen (Link-Partner)
+
+`20` (AddLinkPartner) und `21` (RemoveLinkPartner) tragen als Nutzlast die Adresse des Partners
+(3 Byte) und dessen Gerätetyp (1 Byte: 1 Heizkörper, 2 Heizkörper+, 3 Wandthermostat,
+4 Fensterkontakt, 5 Taster). Die Zentrale sendet den Befehl an **beide** Geräte, jeweils mit der
+Adresse des anderen. Danach schickt der Fensterkontakt seine Zustandstelegramme (`30`) auch direkt
+an das Thermostat, das bei offenem Fenster selbständig die Fenster-offen-Temperatur einstellt –
+unabhängig davon, ob die Zentrale läuft.
+
 ## Zeitsynchronisation
 
 Wandthermostate und Heizkörper fragen ihre Uhrzeit per `03` an oder melden sie. Weicht die Zeit
@@ -112,7 +121,7 @@ lokalen Zeit; maximal einmal pro Minute je Gerät, um das Sendekontingent zu sch
 
 * Wochenprofile und Konfiguration lassen sich **nicht auslesen**, nur senden.
 * Der Cube kann nicht gleichzeitig als MAX!-Cube und als CUL arbeiten – er wird umgeflasht.
-* Fensterkontakte lassen sich nicht direkt mit Thermostaten „verlinken“ (Link-Partner-Telegramme
-  `20`/`21` sind nicht implementiert); die Zentrale meldet nur den Zustand.
+* Eine Verknüpfung (Fensterkontakt ↔ Thermostat) lässt sich nur setzen und lösen, nicht aus den
+  Geräten auslesen; die Zentrale merkt sich, was sie selbst gesetzt hat (Tabelle `links`).
 * Heizkörperthermostate melden die gemessene Temperatur nicht im Urlaubsmodus und nicht in jedem
   Telegramm; die Oberfläche zeigt dann den zuletzt bekannten Wert.

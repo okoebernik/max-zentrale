@@ -55,6 +55,8 @@ class Sim:
         cnt, type_, dst = b[1], b[3], b[7:10].hex().upper()
         d = self.dev.get(dst)
         self.credit = max(0, self.credit - 106)
+        if d and d["kind"] == "window" and type_ in (0x20, 0x21):
+            return [telegram(cnt, 0x02, dst, SRC, bytes([1]))]      # link partner ack
         if not d or d["kind"] == "window":
             return []
         if type_ == 0x40 and len(b) > 11:

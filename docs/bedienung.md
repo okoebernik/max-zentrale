@@ -5,7 +5,7 @@ Alle Bilder zeigen die **Demo-Installation** mit erfundenen Geräten (siehe
 Farbschema an (Umschalter *Auto / Hell / Dunkel* oben rechts) und ist auch auf dem Handy nutzbar.
 
 Das Seitenmenü links gliedert sich in **Übersicht, Räume, Verlauf, Programme**, die Gruppe
-**Geräte** (*Gerät finden*, *Pairing*), die Gruppe **Betrieb** (*Alarme*, *Funktelegramme*, *Konsole*)
+**Geräte** (*Gerät finden*, *Pairing*, *Verknüpfungen*), die Gruppe **Betrieb** (*Alarme*, *Funktelegramme*, *Konsole*)
 und die Gruppe **Verwaltung** (*Mein Konto*, *Benutzer*, *Backup*, *MQTT*). *Benutzer*, *Backup*
 und *MQTT* sehen nur Administratoren.
 
@@ -19,6 +19,7 @@ Sendekontingent), der Farbschema-Umschalter und dein Benutzer mit „Abmelden“
 * [Verlauf](#verlauf)
 * [Gerät finden](#gerät-finden)
 * [Pairing](#pairing)
+* [Verknüpfungen](#verknüpfungen)
 * [Funktelegramme](#funktelegramme)
 * [Alarme](#alarme)
 * [Konsole](#konsole)
@@ -135,6 +136,23 @@ Sendekontingent“ mit der Wartezeit da, und die Anfrage wird beim nächsten Pin
 wiederholt. Pairing hat Vorrang vor anderen Sendungen.
 
 ![Pairing](screenshots/07-pairing.png)
+
+## Verknüpfungen
+
+Ein Fensterkontakt kann direkt mit einem Heizkörperthermostat verknüpft werden. Öffnet sich das
+Fenster, senkt das Thermostat selbständig die Temperatur (Fenster-offen-Temperatur, siehe
+[Programme](#programme)) – auch wenn die Zentrale ausgeschaltet ist. Ebenso lässt sich ein
+Wandthermostat mit Heizkörperthermostaten verknüpfen.
+
+Auf der Seite wählst du links den Fensterkontakt (oder Wandthermostat), rechts das Thermostat und
+klickst **Verknüpfen**. Die Zentrale sendet den Befehl nacheinander an beide Geräte und wartet
+jeweils auf die Bestätigung; das kann bis zu einer Minute dauern (Sendekontingent, Geräte hören nur
+kurz nach ihrem eigenen Senden zu). Schlägt es fehl, einfach wiederholen. Unter *Bestehende
+Verknüpfungen* steht, was von hier aus gesetzt wurde; **Lösen** entfernt die Verknüpfung wieder.
+Die Geräte lassen sich nicht auslesen – Verknüpfungen, die zuvor mit anderer Software gesetzt
+wurden, erscheinen nicht in der Liste.
+
+![Verknüpfungen](screenshots/19-verknuepfungen.png)
 
 ## Funktelegramme
 

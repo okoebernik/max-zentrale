@@ -26,6 +26,7 @@ MAX! Cube.
 | **Räume & Geräte** | Geräte benennen und Räumen zuordnen, Raumsteuerung („Alle setzen“ / „Alle Auto“), Ist-/Soll-Temperatur, Ventilstellung, Batterie- und Fensterstatus |
 | **Programme** | Wochenprofile je Heizkörper- oder Wandthermostat (bis 13 Schaltpunkte pro Tag), Komfort-/Eco-Temperatur, Fenster-offen-Temperatur, Grenzen, Offset |
 | **Wandthermostate** | Soll-Temperatur setzen, Display auf Ist- oder Soll-Temperatur umstellen |
+| **Verknüpfungen** | Fensterkontakte bzw. Wandthermostate direkt mit Heizkörperthermostaten verknüpfen (Fenster auf → Heizung runter, auch ohne Zentrale) |
 | **Pairing** | Neue oder zurückgesetzte Geräte koppeln, „Gerät finden“ (welches Gerät ist welches?) |
 | **Uhrzeit** | Automatische Uhrzeitsynchronisation, wenn ein Gerät eine falsche Zeit meldet |
 | **Verlauf** | Diagramme für Ist-, Soll-Temperatur und Ventilstellung (24 h / 7 Tage / 30 Tage) |

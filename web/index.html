@@ -178,6 +178,7 @@ button.nm:hover .pen{color:var(--blue)}
 <div class="grp">Geräte</div>
 <a href="#find" data-p="find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Gerät finden</a>
 <a href="#pairing" data-p="pairing"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Pairing</a>
+<a href="#links" data-p="links"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg>Verknüpfungen</a>
 <div class="grp">Betrieb</div>
 <a href="#telegrams" data-p="telegrams"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Funktelegramme</a>
 <a href="#alerts" data-p="alerts"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alarme<span id="navbadge" class="nb" hidden></span></a>
@@ -240,6 +241,12 @@ button.nm:hover .pen{color:var(--blue)}
 <div id="cfgbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
 <h2>Wochenprofil</h2>
 <div id="profbox"><span class="addr">Noch kein Gerät gewählt.</span></div>
+</section>
+<section data-page="links">
+<div class="phead"><h1>Verknüpfungen</h1><p>Ein Fensterkontakt (oder Wandthermostat) kann direkt mit einem Heizkörperthermostat verknüpft werden: Öffnet sich das Fenster, senkt das Thermostat selbständig die Temperatur – auch ohne Zentrale. Die Verknüpfung wird in beide Geräte geschrieben.</p></div>
+<div class="setbox" id="linkadd"></div>
+<h2>Bestehende Verknüpfungen</h2>
+<div class="setbox" id="linklist"></div>
 </section>
 <section data-page="alerts">
 <div class="phead"><h1>Alarme</h1><p>Schwache Batterien – in der Oberfläche und optional per E-Mail.</p></div>
@@ -663,7 +670,7 @@ $("#addroom").onclick=async()=>{
 document.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{hours=+b.dataset.h;drawChart();});
 
 /* ---------------------------------------------------------- navigation */
-const PAGES=["home","rooms","find","pairing","history","programs","alerts","console","telegrams","account","users","backup","mqtt"];
+const PAGES=["home","rooms","find","pairing","links","history","programs","alerts","console","telegrams","account","users","backup","mqtt"];
 let page="home";
 let progAddr=null;
 function goto(p){
@@ -683,6 +690,7 @@ function goto(p){
   if(p==="mqtt")renderMqtt();
   if(p==="backup")renderBackup();
   if(p==="alerts")renderAlerts2();
+  if(p==="links")renderLinks();
 }
 window.addEventListener("hashchange",()=>goto(location.hash.slice(1)));
 function fillHist(){
@@ -762,6 +770,33 @@ async function renderAlerts2(){
       el("button",{onclick:async()=>{const s1=await api("/api/alerts",form());if(!s1.data.ok)return say(m,s1.data.error||"Fehler",false);
         say(m,"sende …",true);const x=await api("/api/alerts",{action:"test"});say(m,x.data.ok?"Testmail gesendet.":"Fehler: "+(x.data.error||x.status),x.data.ok);}},"Speichern & Testmail senden")),
     el("div",{class:"addr"},"Die Meldung kommt beim Entstehen des Alarms und danach als Erinnerung, bis die Batterie getauscht ist."+(st.last_mail?" Letzte Mail: "+fm(st.last_mail)+".":"")+(st.last_error?" Letzter Fehler: "+st.last_error:"")+" Das SMTP-Passwort liegt unverschlüsselt in der Datenbank."),m);
+}
+/* ------------------------------------------------------ Verknüpfungen */
+function renderLinks(){const fm=t=>(t||"").replace("T"," ");
+  if(!state)return;
+  const dn=a=>{const d=state.devices.find(x=>x.addr===a);return d?(d.name||"Unbenannt")+" ("+(KINDDE[d.kind]||"Gerät")+", "+a+")":a;};
+  const lk=state.links||[],m=msgEl(),ok=canOperate();
+  const act=async(a,b,remove)=>{say(m,"sende … (kann bis zu einer Minute dauern)",true);
+    const x=await api("/api/link",{addr:a,partner:b,remove});
+    if(!x.data.ok){say(m,x.data.error||"Fehler",false);return;}
+    await load();renderLinks();};
+  $("#linklist").replaceChildren(lk.length?el("table",{},el("tr",{},...["Gerät","Partner","Gesendet",""].map(h=>el("th",{},h))),
+    ...lk.map(l=>el("tr",{},el("td",{},dn(l.a)),el("td",{},dn(l.b)),el("td",{},fm(l.sent_at)),
+      el("td",{},ok?el("button",{onclick:async()=>{if(await askOk("Verknüpfung wirklich lösen?"))act(l.a,l.b,true);}},"Lösen"):"")))):
+    el("div",{class:"addr"},"Noch keine Verknüpfung von hier aus gesetzt."),m);
+  const win=state.devices.filter(d=>d.kind==="ShutterContact"||KIND[d.kind]==="wall"),
+        heat=state.devices.filter(d=>KIND[d.kind]==="heat"||KIND[d.kind]==="wall");
+  const opt=l=>l.map(d=>el("option",{value:d.addr},dn(d.addr)));
+  const a=el("select",{},opt(win)),b=el("select",{},opt(heat));
+  const m2=msgEl();
+  $("#linkadd").replaceChildren(el("div",{class:"grid"},field("Fensterkontakt / Wandthermostat",a),field("Heizkörper- oder Wandthermostat",b)),
+    el("div",{class:"row"},el("button",{class:"pri",...(ok?{}:{disabled:""}),onclick:async()=>{
+      if(!a.value||!b.value||a.value===b.value)return say(m2,"Bitte zwei verschiedene Geräte wählen.",false);
+      say(m2,"sende … (kann bis zu einer Minute dauern)",true);
+      const x=await api("/api/link",{addr:a.value,partner:b.value});
+      if(!x.data.ok)return say(m2,x.data.error||"Fehler",false);
+      await load();renderLinks();}},"Verknüpfen")),
+    el("div",{class:"addr"},"Beide Geräte müssen den Befehl bestätigen. Batteriegeräte (Fensterkontakt, Heizkörperthermostat) hören nur kurz nach ihrem eigenen Senden zu; ein Fehlschlag lässt sich einfach wiederholen. Nur Verknüpfungen, die von hier aus gesetzt wurden, werden aufgelistet."),m2);
 }
 function renderKpis(){
   if(!state)return;renderAlerts();renderBadge();

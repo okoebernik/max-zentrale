@@ -43,6 +43,7 @@ Pairing-Antworten laufen über die Prioritätswarteschlange und unterbrechen war
 | `names`, `rooms`, `device_room` | Namen und Räume |
 | `profiles`, `device_config` | zuletzt gesendete Wochenprofile und Konfiguration |
 | `users`, `sessions` | Benutzerverwaltung |
+| `links` | von hier gesetzte Verknüpfungen (Gerät A, Gerät B, gesendet) |
 | `alerts` | Alarme (Gerät, Art, seit, zuletzt gemeldet, behoben) |
 | `settings` | Schlüssel/Wert (MQTT, Backup) |
 
@@ -73,6 +74,7 @@ Alle Endpunkte außer den ersten drei verlangen eine Anmeldung (Cookie). Antwort
 | `POST /api/config`, `/api/preset` | B | Komfort/Eco-Konfiguration senden; `{preset: comfort\|eco}` |
 | `POST /api/display`, `/api/time` | B | Anzeige Ist/Soll, Uhrzeit stellen |
 | `POST /api/pairing` | B | `{enable: true\|false}` |
+| `POST /api/link` | B | `{addr, partner, remove?}` – Link-Partner-Telegramme (`20`/`21`) an beide Geräte; `/api/state` enthält `links` |
 | `GET /api/alerts` | V | offene und behobene Alarme (Administratoren zusätzlich E-Mail-Einstellungen) |
 | `POST /api/alerts` | A | `{action:"settings"\|"test", …}` |
 | `GET/POST /api/users` | A | Benutzer verwalten |
@@ -130,7 +132,6 @@ Beide brauchen den exklusiven Zugriff auf den Port – den Server vorher stoppen
 
 ## Weiterentwicklung (Ideen)
 
-* Fensterkontakt-/Thermostat-Verknüpfung (Telegramme `20`/`21`),
 * Zeitplan für Räume („Urlaub“, Abwesenheit),
 * HTTPS direkt im Server,
 * Wochenprofil von mehreren Geräten gleichzeitig senden,
