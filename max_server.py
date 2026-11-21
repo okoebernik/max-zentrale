@@ -101,6 +101,8 @@ class Job:
         self.state = "new"      # new -> credit -> ack -> finished
         self.deadline = 0.0
         self.wake = False       # battery device: send right after it transmits
+        self.ack_cnt = None       # wake jobs: counter of the telegram to acknowledge first
+        self.max_attempts = None  # default: MAX_ATTEMPTS
         self.fast = False       # "Zf": no long preamble (device listens only briefly)
         self.expire = 0.0
 
@@ -134,7 +136,7 @@ class SerialWorker(threading.Thread):
         with self.wake_lock:
             self.wake_jobs.append(job)
 
-    def wake_sweep(self, src=None):
+    def wake_sweep(self, src=None, cnt=None):
         with self.wake_lock:
             for j in list(self.wake_jobs):
                 if j.cancelled:
@@ -148,6 +150,7 @@ class SerialWorker(threading.Thread):
                 elif src and j.dst == src:
                     self.wake_jobs.remove(j)
                     j.state = "new"
+                    j.ack_cnt = cnt
                     self.prio.put(j)
 
     def log_console(self, direction, raw, t=None, desc="", note=""):
@@ -159,6 +162,8 @@ class SerialWorker(threading.Thread):
                          t["type"], "0x%02X" % t["type"]),
                      grp=t["grp"], payload=t["payload"].hex().upper(),
                      rssi=t["rssi"], desc=desc)
+        if direction != "rx" or (t and t["type"] == 0x02):
+            print("%s %s %s %s" % (e["ts"], direction, raw, note), flush=True)   # journal: TX, acks, culfw replies
         with self.console_lock:
             self.console_n += 1
             e["n"] = self.console_n
@@ -217,7 +222,8 @@ class SerialWorker(threading.Thread):
                 self.log_console("info", line)
             return
         if self.wake_jobs and t["type"] != 0x02:
-            self.wake_sweep(t["src"])               # answer a sleeping device at once
+            self.wake_sweep(t["src"], t["msgcnt"])      # answer a sleeping device at once
+            self.log_console("info", "", note="Gerät %s hat gesendet – Befehl wird sofort ausgeliefert" % t["src"]) if any(j.dst == t["src"] for j in self.prio.queue) else None
         ts = datetime.now().isoformat(timespec="seconds")
         desc, reading, extra = decode(t)
         store(db, ts, t, desc, reading, extra)
@@ -354,7 +360,7 @@ class SerialWorker(threading.Thread):
             j.done.set()
             return
         if j.state == "credit_req" and now >= j.next:
-            if j.attempt >= MAX_ATTEMPTS:
+            if j.attempt >= (j.max_attempts or MAX_ATTEMPTS):
                 return self.finish(False, "no acknowledgement from thermostat")
             if now - j.started > j.max_wait:
                 return self.finish(False, "not enough send credit (duty cycle)")
@@ -375,6 +381,11 @@ class SerialWorker(threading.Thread):
                 j.attempt += 1
                 if j.kind == "time":     # always send the current time
                     j.packet, _ = build_time_packet(self.src, j.dst, j.cnt)
+                if j.fast and j.ack_cnt is not None and j.attempt % 2 == 1:
+                    # acknowledge the device's own telegram first, like the real Cube does
+                    ack, _ = build_raw(self.src, j.dst, 0x02, bytes([1]), flags=0x02, cnt=j.ack_cnt)
+                    ser.write(f"Zf{ack}\n".encode())
+                    self.log_console("tx", "Zf" + ack, parse_telegram("Z" + ack), "", "Quittung vorab")
                 ser.write(f"Z{'f' if j.fast else 's'}{j.packet}\n".encode())
                 tx = parse_telegram("Z" + j.packet)
                 self.log_console("tx", ("Zf" if j.fast else "Zs") + j.packet, tx,
@@ -988,12 +999,13 @@ class Handler(BaseHTTPRequestHandler):
                 job.kind = "raw"
                 job.raw = build_raw(worker.src, dst, 0x21 if rm else 0x20,
                                     bytes.fromhex(other) + bytes([tcode[kinds[other]]]))
+                job.max_attempts = 6                # marginal reception: try harder
                 if kinds[dst] == "ShutterContact":
                     worker.add_wake(job)           # sleeping battery device
                     wait = 335
                 else:
                     worker.jobs.put(job)
-                    wait = 30
+                    wait = 60
                 if not job.done.wait(wait):
                     job.cancelled = True
                     return {"ok": False, "timeout": True}
@@ -1005,7 +1017,7 @@ class Handler(BaseHTTPRequestHandler):
                 order.reverse()
             for n, (dst, other) in enumerate(order):
                 r = send_link(dst, other, remove)
-                if not r["ok"] and not r.get("timeout") and not remove:
+                if not r["ok"] and "rejected" in (r.get("error") or "") and not remove:
                     # the device may already hold this link (e.g. from the old Cube):
                     # clear it and add it again
                     send_link(dst, other, True)
