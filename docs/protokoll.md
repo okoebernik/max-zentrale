@@ -107,7 +107,7 @@ bei dem es sich an den Absender der PairPong-Antwort bindet.
 `20` (AddLinkPartner) und `21` (RemoveLinkPartner) tragen als Nutzlast die Adresse des Partners
 (3 Byte) und dessen Gerätetyp (1 Byte: 1 Heizkörper, 2 Heizkörper+, 3 Wandthermostat,
 4 Fensterkontakt, 5 Taster). Die Zentrale sendet den Befehl an **beide** Geräte, jeweils mit der
-Adresse des anderen. Danach schickt der Fensterkontakt seine Zustandstelegramme (`30`) auch direkt
+Adresse des anderen. Ein Fensterkontakt hört nur ganz kurz nach seinem eigenen Funkspruch zu; deshalb wartet die Zentrale auf dessen nächstes Telegramm und antwortet sofort mit `Zf` (culfw „fast“, ohne die lange Präambel von `Zs`). Danach schickt der Fensterkontakt seine Zustandstelegramme (`30`) auch direkt
 an das Thermostat, das bei offenem Fenster selbständig die Fenster-offen-Temperatur einstellt –
 unabhängig davon, ob die Zentrale läuft.
 

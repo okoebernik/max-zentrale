@@ -101,6 +101,7 @@ class Job:
         self.state = "new"      # new -> credit -> ack -> finished
         self.deadline = 0.0
         self.wake = False       # battery device: send right after it transmits
+        self.fast = False       # "Zf": no long preamble (device listens only briefly)
         self.expire = 0.0
 
 
@@ -129,7 +130,7 @@ class SerialWorker(threading.Thread):
     def add_wake(self, job, wait=330):
         """Queue a job for a battery device that only listens right after it
         has transmitted itself: it is sent when the next telegram arrives."""
-        job.wake, job.expire, job.max_wait = True, time.time() + wait, 30
+        job.wake, job.fast, job.expire, job.max_wait = True, True, time.time() + wait, 30
         with self.wake_lock:
             self.wake_jobs.append(job)
 
@@ -215,6 +216,8 @@ class SerialWorker(threading.Thread):
             if line:
                 self.log_console("info", line)
             return
+        if self.wake_jobs and t["type"] != 0x02:
+            self.wake_sweep(t["src"])               # answer a sleeping device at once
         ts = datetime.now().isoformat(timespec="seconds")
         desc, reading, extra = decode(t)
         store(db, ts, t, desc, reading, extra)
@@ -225,8 +228,6 @@ class SerialWorker(threading.Thread):
                 fn(t["src"])
             except Exception:
                 pass
-        if self.wake_jobs and t["type"] != 0x02:
-            self.wake_sweep(t["src"])
         if t["type"] == 0x03 and t["dst"] == self.src:
             self.maybe_sync_time(t)
         if t["type"] == 0x00:
@@ -357,12 +358,16 @@ class SerialWorker(threading.Thread):
                 return self.finish(False, "no acknowledgement from thermostat")
             if now - j.started > j.max_wait:
                 return self.finish(False, "not enough send credit (duty cycle)")
+            if j.fast and self.status.get("credit_last") is not None:
+                self.status["credit"] = self.status["credit_last"]    # no time for a round trip
+                j.state = "credit_wait"
+                return self.drive_job(ser)
             self.status["credit"] = None
             ser.write(b"X\n")
             j.state, j.deadline = "credit_wait", now + 3
         elif j.state == "credit_wait":
             credit = self.status["credit"]
-            need = 100 + len(j.packet) * 4 // 10 + 1   # 1 s preamble + payload
+            need = (0 if j.fast else 100) + len(j.packet) * 4 // 10 + 1   # 1 s preamble + payload
             if credit is None:
                 if now > j.deadline:
                     self.finish(False, "culfw did not report its send credit")
@@ -370,9 +375,9 @@ class SerialWorker(threading.Thread):
                 j.attempt += 1
                 if j.kind == "time":     # always send the current time
                     j.packet, _ = build_time_packet(self.src, j.dst, j.cnt)
-                ser.write(f"Zs{j.packet}\n".encode())
+                ser.write(f"Z{'f' if j.fast else 's'}{j.packet}\n".encode())
                 tx = parse_telegram("Z" + j.packet)
-                self.log_console("tx", "Zs" + j.packet, tx,
+                self.log_console("tx", ("Zf" if j.fast else "Zs") + j.packet, tx,
                                  decode(tx)[0] if tx else "",
                                  "Versuch %d" % j.attempt)
                 j.state, j.deadline = "ack", now + ACK_TIMEOUT
@@ -1009,9 +1014,12 @@ class Handler(BaseHTTPRequestHandler):
                     undone = ""
                     if n and not remove:        # roll back the half-set link
                         first = order[0]
+                        rb = send_link(first[0], first[1], True)
                         undone = (" – die Verknüpfung in %s wurde wieder entfernt" % first[0]
-                                  if send_link(first[0], first[1], True).get("ok") else
-                                  " – %s hat die Verknüpfung noch (Rücknahme fehlgeschlagen)" % first[0])
+                                  if rb.get("ok") else
+                                  " – %s hat die Verknüpfung evtl. noch (Rücknahme fehlgeschlagen: %s; "
+                                  "auf der Seite „Verknüpfungen“ per „Lösen“ erneut versuchen)" % (
+                                      first[0], "Timeout" if rb.get("timeout") else rb.get("error", "")))
                     if r.get("timeout"):
                         why = ("Timeout bei %s: kein Sendekontingent oder keine Antwort" % dst
                                if kinds[dst] != "ShutterContact" else

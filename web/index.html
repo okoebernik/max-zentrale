@@ -796,7 +796,15 @@ function renderLinks(){const fm=t=>(t||"").replace("T"," ");
       say(m2,sleepy?"Warte auf den Fensterkontakt … bitte jetzt das Fenster öffnen oder schließen bzw. die Taste am Kontakt drücken (bis zu 5 Minuten).":"sende … (kann bis zu einer Minute dauern)",true);
       const x=await api("/api/link",{addr:a.value,partner:b.value});
       if(!x.data.ok)return say(m2,x.data.error||"Fehler",false);
-      await load();renderLinks();}},"Verknüpfen")),
+      await load();renderLinks();}},"Verknüpfen"),
+      el("button",{...(ok?{}:{disabled:""}),onclick:async()=>{
+        if(!a.value||!b.value||a.value===b.value)return say(m2,"Bitte zwei verschiedene Geräte wählen.",false);
+        if(!await askOk("Verknüpfung dieser beiden Geräte lösen?"))return;
+        const sleepy=state.devices.some(d=>d.kind==="ShutterContact"&&[a.value,b.value].includes(d.addr));
+        say(m2,sleepy?"Warte auf den Fensterkontakt … bitte jetzt das Fenster öffnen oder schließen bzw. die Taste am Kontakt drücken (bis zu 5 Minuten).":"sende …",true);
+        const x=await api("/api/link",{addr:a.value,partner:b.value,remove:true});
+        if(!x.data.ok)return say(m2,x.data.error||"Fehler",false);
+        await load();renderLinks();}},"Lösen")),
     el("div",{class:"addr"},"Beide Geräte müssen den Befehl bestätigen. Ein Fensterkontakt hört nur kurz nach seinem eigenen Senden zu: Die Zentrale wartet, bis er sich meldet (Fenster öffnen/schließen oder Taste am Kontakt drücken), und sendet dann sofort. Nur Verknüpfungen, die von hier aus gesetzt wurden, werden aufgelistet."),m2);
 }
 function renderKpis(){

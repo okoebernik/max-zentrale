@@ -91,7 +91,7 @@ def serve(conn, sim):
                     out("V 1.26.08 a-culfw SIMULATOR (demo, no radio)")
                 elif cmd == "X":
                     out("21  %d" % sim.credit)
-                elif cmd.startswith("Zs"):
+                elif cmd.startswith(("Zs", "Zf")):
                     for t in sim.handle_send(cmd[2:]):
                         time.sleep(0.4)
                         out(t)
