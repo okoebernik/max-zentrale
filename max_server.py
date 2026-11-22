@@ -1017,28 +1017,20 @@ class Handler(BaseHTTPRequestHandler):
                 order.reverse()
             for n, (dst, other) in enumerate(order):
                 r = send_link(dst, other, remove)
-                if not r["ok"] and "rejected" in (r.get("error") or "") and not remove:
-                    # the device may already hold this link (e.g. from the old Cube):
-                    # clear it and add it again
-                    send_link(dst, other, True)
-                    r = send_link(dst, other, False)
                 if not r["ok"]:
-                    undone = ""
-                    if n and not remove:        # roll back the half-set link
-                        first = order[0]
-                        rb = send_link(first[0], first[1], True)
-                        undone = (" – die Verknüpfung in %s wurde wieder entfernt" % first[0]
-                                  if rb.get("ok") else
-                                  " – %s hat die Verknüpfung evtl. noch (Rücknahme fehlgeschlagen: %s; "
-                                  "auf der Seite „Verknüpfungen“ per „Lösen“ erneut versuchen)" % (
-                                      first[0], "Timeout" if rb.get("timeout") else rb.get("error", "")))
+                    # No automatic rollback: a device may have held this link already
+                    # (e.g. from the old Cube), and removing it would break a working setup.
+                    done = ""
+                    if n and not remove:
+                        done = (" – %s hat die Verknüpfung schon übernommen. Falls sie vorher nicht "
+                                "bestand, mit „Lösen“ wieder entfernen." % order[0][0])
                     if r.get("timeout"):
                         why = ("Timeout bei %s: kein Sendekontingent oder keine Antwort" % dst
                                if kinds[dst] != "ShutterContact" else
                                "%s (Fensterkontakt) hat sich nicht gemeldet – Fenster öffnen/schließen oder Taste am Kontakt drücken, solange die Seite wartet" % dst)
-                        return self.reply(504, {"ok": False, "error": why + undone})
+                        return self.reply(504, {"ok": False, "error": why + done})
                     return self.reply(502, {"ok": False, "error": "%s hat nicht bestätigt: %s%s" % (
-                        dst, r.get("error", ""), undone)})
+                        dst, r.get("error", ""), done)})
             a, b = sorted((addr, partner))
             c = sqlite3.connect(db)
             if remove:

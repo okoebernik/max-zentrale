@@ -150,8 +150,11 @@ jeweils auf die Bestätigung; das kann bis zu einer Minute dauern (Sendekontinge
 **Fensterkontakt** hört nur kurz nach seinem eigenen Senden zu: Die Zentrale wartet bis zu
 5 Minuten, bis er sich meldet, und sendet dann sofort. Öffne oder schließe dazu das Fenster bzw.
 drücke die Taste am Kontakt, solange die Seite „Warte auf den Fensterkontakt …“ zeigt. Lehnt ein
-Gerät ab oder meldet sich der Kontakt nicht, nimmt die Zentrale die Verknüpfung im anderen Gerät
-wieder zurück. Schlägt es fehl, einfach wiederholen. Unter *Bestehende
+Gerät ab oder meldet sich der Kontakt nicht, bleibt die Verknüpfung im anderen Gerät bestehen (die
+Zentrale nimmt nichts automatisch zurück, weil sie nicht weiß, ob die Verknüpfung vorher schon
+bestand); mit **Lösen** lässt sie sich entfernen. Schlägt es fehl, einfach wiederholen. Ein Wandthermostat
+und sein Heizkörper sind meist schon vom alten Cube verknüpft; ein erneutes Verknüpfen ist dann
+nicht nötig und wird vom Heizkörper abgelehnt. Unter *Bestehende
 Verknüpfungen* steht, was von hier aus gesetzt wurde; **Lösen** entfernt die Verknüpfung wieder.
 Die Geräte lassen sich nicht auslesen – Verknüpfungen, die zuvor mit anderer Software gesetzt
 wurden, erscheinen nicht in der Liste.
