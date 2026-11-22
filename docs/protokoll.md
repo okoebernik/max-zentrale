@@ -111,6 +111,26 @@ Adresse des anderen. Ein Fensterkontakt hört nur ganz kurz nach seinem eigenen 
 an das Thermostat, das bei offenem Fenster selbständig die Fenster-offen-Temperatur einstellt –
 unabhängig davon, ob die Zentrale läuft.
 
+### Erfahrungen mit Verknüpfungen
+
+* **Auslesen geht nicht.** Es gibt keinen Befehl, der die Partner eines Geräts liefert. Man kann sie
+  nur indirekt aus dem Funkverkehr ablesen: Wandthermostate senden `WallThermostatControl`
+  an ihre Partner, Heizkörper melden ihren Zustand auch an ihr Wandthermostat. Fensterkontakte
+  senden dagegen nur an die Zentrale; ihre Partner lassen sich nicht ablesen.
+* **Ein Heizkörper nimmt nur ein Wandthermostat als Partner an.** Hat er schon eines (z. B. aus
+  der Zeit mit dem alten Cube), antwortet er auf `20` mit einem Fehler (Antwort beginnt mit `81`).
+  Erst `21` mit dem alten Partner senden, dann den neuen anlegen. Dazu muss man den Typ des
+  alten Partners kennen (im Test nahm ein Heizkörper den Eintrag nur mit Typ 1 statt 3 an).
+* **`21` für einen nicht vorhandenen Partner** wird ebenfalls mit `81` abgelehnt – das ist kein
+  Fehler, sondern heißt „war nicht verknüpft“.
+* **Alte Verknüpfungen prüfen:** Der Funkverkehr zeigt oft Partner aus anderen Räumen, die vom
+  früheren Aufbau stammen. Sie lassen sich mit `21` an das Wandthermostat entfernen.
+* **Heizkörper antworten nicht immer sofort.** Bis zu sechs Versuche im Abstand von 6 Sekunden
+  waren nötig; ein Heizkörper am Rand der Reichweite braucht mehrere.
+* **Fensterkontakte** hören nur kurz nach ihrem eigenen Funkspruch zu: sofort mit `Zf` antworten.
+  Auch dann bestätigt ein Kontakt nicht jeden Versuch; bestätigt wurde im Test meist beim
+  2. Telegramm einer Serie. Ob die Verknüpfung wirkt, zeigt nur das Verhalten der Heizung.
+
 ## Zeitsynchronisation
 
 Wandthermostate und Heizkörper fragen ihre Uhrzeit per `03` an oder melden sie. Weicht die Zeit

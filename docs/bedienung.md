@@ -159,6 +159,12 @@ Verknüpfungen* steht, was von hier aus gesetzt wurde; **Lösen** entfernt die V
 Die Geräte lassen sich nicht auslesen – Verknüpfungen, die zuvor mit anderer Software gesetzt
 wurden, erscheinen nicht in der Liste.
 
+**Tipps bei Ablehnung:** Ein Heizkörper nimmt nur *ein* Wandthermostat als Partner an. Lehnt er
+ein neues ab, hat er vermutlich noch einen alten Partner (z. B. aus der Zeit mit dem alten Cube).
+Den alten Partner musst du vorher mit **Lösen** entfernen. Welche Partner ein Gerät hat, lässt sich
+aus dem Funkverkehr der Konsole ablesen (siehe [Funkprotokoll](protokoll.md#erfahrungen-mit-verknüpfungen)).
+Bei schwachem Empfang hilft es, den Heizkörper vor dem Verknüpfen am Drehrad kurz zu wecken.
+
 ![Verknüpfungen](screenshots/19-verknuepfungen.png)
 
 ## Funktelegramme
